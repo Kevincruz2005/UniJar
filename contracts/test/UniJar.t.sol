@@ -65,7 +65,7 @@ contract UniJarTest is Test {
         vm.prank(alice); sale.bid(id,11e6,bob); assertEq(sale.credits(alice),10e6);
         vm.prank(bob); sale.bid(id,12e6,bob); assertEq(sale.credits(alice),21e6);
         vm.prank(alice); sale.withdrawRefund(); assertEq(usd.balanceOf(alice),1000e6);
-        sale.setPaused(true); vm.warp(block.timestamp+100); sale.finalizeAuction(id);
+        jar.setReleaser(bob); sale.setPaused(true); vm.warp(block.timestamp+100); sale.finalizeAuction(id);
         assertEq(usd.balanceOf(treasury),12e6); assertEq(alt.balanceOf(bob),10e18);
         assertEq(sale.totalCredits(),0); assertEq(sale.bidLiability(),0); assertEq(sale.activeId(),0);
     }
@@ -123,5 +123,26 @@ contract UniJarTest is Test {
         (uint256 amount,)=sale.quoteDirect(id);
         uint256 numerator=uint256(quote)*(10000-discount); uint256 expected=numerator/10000; if(numerator%10000!=0)expected++;
         assertEq(amount,expected);
+    }
+    function testFullWidthIntegerVectors() public {
+        // Independent Python arbitrary-precision vectors: (q*(10000-d)+9999)//10000.
+        uint256[3] memory expected=[
+            uint256(115792089237316195423570985008687907853269984665640564039457584007913129639935),
+            uint256(115780510028392463804028627910187039062484657667173999983053638249512338326972),
+            uint256(114634168344943033469335275158601028774737284818984158399063008167833998343536)
+        ];
+        for(uint256 i;i<3;i++) {
+            UniJar.Policy memory p=policy();p.version=uint64(i+2);p.discountBps=i==2?100:uint16(i);sale.setPolicy(address(fee),p);
+            uint256 id=direct();reader.configure(type(uint256).max,0,0,1e12,uint32(block.timestamp),false);
+            (uint256 amount,)=sale.quoteDirect(id);assertEq(amount,expected[i]);sale.cancelDirect(id);sale.recover(id);
+        }
+    }
+    function testQuantityDurationPolicyAndCheckedIncrement() public {
+        vm.expectRevert();sale.openDirect(address(fee),101e18,10100);
+        vm.expectRevert();sale.openDirect(address(fee),1,20000);
+        UniJar.Policy memory p=policy();vm.expectRevert();sale.setPolicy(address(fee),p);
+        uint256 id=sale.openAuction(address(alt),1,10100,1,type(uint256).max);
+        vm.prank(alice);sale.bid(id,1,alice);vm.prank(bob);vm.expectRevert();sale.bid(id,2,bob);
+        assertEq(sale.bidLiability(),1);
     }
 }

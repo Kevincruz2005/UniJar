@@ -32,6 +32,7 @@ class Fake implements Gateway {
     if (method === 'paused') return this.paused;
     if (method === 'releaser') return addr(2);
     if (method === 'credits') return 900719925474099300000n;
+    if (['bidLiability', 'totalCredits'].includes(method)) return 0n;
     if (['balanceOf', 'inventory'].includes(method)) return 10n ** 18n;
     if (method === 'quoteDirect') { if (this.revertQuote) throw Object.assign(new Error('do not leak'), { name: 'ContractFunctionRevertedError' }); return [990000n, this.lot.policyHash]; }
     throw new Error('Unexpected read');

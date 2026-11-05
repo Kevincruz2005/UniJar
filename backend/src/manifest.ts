@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { readFileSync } from 'node:fs';
 import { z } from 'zod';
-import { isAddress, type Abi } from 'viem';
+import { isAddress, zeroAddress, type Abi } from 'viem';
 
-const address = z.string().refine(v => isAddress(v, { strict: false }));
+const address = z.string().refine(v => isAddress(v, { strict: false }) && v.toLowerCase() !== zeroAddress);
 const hash = z.string().regex(/^0x[0-9a-fA-F]{64}$/);
 const decimal = z.string().regex(/^(0|[1-9][0-9]*)$/);
 const record = z.object({ address, block: decimal, transactionHash: hash, codeHash: hash });

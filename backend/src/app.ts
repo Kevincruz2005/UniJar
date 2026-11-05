@@ -61,8 +61,9 @@ export async function buildApp(options: { manifest: Manifest; gateway: Gateway; 
   });
   app.get('/v1/inventory', { schema: { response: { 200: s.envelope({ type: 'array', items: s.object({ asset: s.address, jar: s.decimal, escrow: s.decimal, accounted: s.decimal }) }), ...errors } } }, async () => {
     const block = await context();
-    const data = await Promise.all([a.directAsset, a.auctionAsset].map(async asset => {
-      const [jar, escrow, accounted] = await Promise.all([read(asset, abis.token, 'balanceOf', [a.jar], block), read(asset, abis.token, 'balanceOf', [a.releaser], block), sale('inventory', [asset], block)]);
+    const data = await Promise.all([a.directAsset, a.auctionAsset, a.payout].map(async asset => {
+      const accounting = asset === a.payout ? Promise.all([sale('bidLiability', [], block), sale('totalCredits', [], block)]).then(([bid, credit]) => (bid as bigint) + (credit as bigint)) : sale('inventory', [asset], block);
+      const [jar, escrow, accounted] = await Promise.all([read(asset, abis.token, 'balanceOf', [a.jar], block), read(asset, abis.token, 'balanceOf', [a.releaser], block), accounting]);
       return { asset, jar, escrow, accounted };
     })); return clean({ block, data });
   });
