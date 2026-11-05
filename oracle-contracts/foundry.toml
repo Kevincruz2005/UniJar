@@ -1,0 +1,9 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["../.deps"]
+solc_version = "0.7.6"
+evm_version = "istanbul"
+optimizer = true
+optimizer_runs = 200
+remappings = ["@uniswap/v3-core/=../.deps/v3-core/", "@uniswap/v3-periphery/=../.deps/v3-periphery/"]
