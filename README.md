@@ -57,6 +57,8 @@ manifests are written only after code, adoption and reference checks pass.
 
 ```sh
 CHAIN_ID=11155111 backend/node_modules/.bin/tsx backend/tools/validate-manifest.ts
+make oracle-status
+make verify-sources
 ```
 
 All tokens, liquidity, buyers and the pool are controlled fixtures. Raw liquidity
