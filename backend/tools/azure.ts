@@ -50,6 +50,7 @@ async function waitReady(url: string) {
   throw new Error('HTTPS readiness did not pass within the cold-start allowance');
 }
 async function smoke() {
+  if (existsSync(resolve(root, '.local/sepolia.env'))) process.loadEnvFile(resolve(root, '.local/sepolia.env'));
   const deployed = JSON.parse(readFileSync(resolve(root, 'deployments/azure.json'), 'utf8'));
   await waitReady(deployed.url);
   run(resolve(root, 'backend/node_modules/.bin/tsx'), ['backend/tools/smoke.ts'], { timeout: 1200000, env: { ...process.env, CHAIN_ID: '11155111', API_URL: deployed.url } });
@@ -60,6 +61,14 @@ async function smoke() {
   const health = await (await fetch(`${deployed.url}/healthz`)).json(); assert.equal(health.version, deployed.sourceCommit); assert.equal(health.chainId, 11155111);
   const denied = await fetch(`${deployed.url}/v1/config`, { headers: { origin: 'https://untrusted.example' } }); assert.equal(denied.headers.get('access-control-allow-origin'), null);
   const tooLarge = await fetch(`${deployed.url}/v1/transactions/prepare`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ padding: 'x'.repeat(17000) }) }); assert.equal(tooLarge.status, 413);
+  const consoleLogs = run('az', ['containerapp', 'logs', 'show', '--name', 'unijar-api', '--resource-group', groupName, '--type', 'console', '--tail', '100', '--format', 'json', '--only-show-errors']);
+  if (process.env.SEPOLIA_RPC_URL) {
+    const endpoint = new URL(process.env.SEPOLIA_RPC_URL);
+    const credentials = [process.env.SEPOLIA_RPC_URL, endpoint.username, endpoint.password, ...endpoint.searchParams.values()].filter(v => v.length > 4);
+    for (const value of credentials) assert.ok(!consoleLogs.includes(value), 'RPC credential appeared in console logs');
+  }
+  assert.ok(!/"privateKey"\s*:|BEGIN .*PRIVATE KEY/.test(consoleLogs), 'Signing key field appeared in console logs');
+  writeFileSync(resolve(root, '.local/azure-console.log'), consoleLogs, { mode: 0o600 });
   let limited = false;
   for (let i = 0; i < 125; i++) { const r = await fetch(`${deployed.url}/v1/config`); if (r.status === 429) { limited = true; break; } }
   assert.ok(limited, 'Live rate limit was not observed');
@@ -76,7 +85,7 @@ async function smoke() {
   }
   const reportPath = resolve(root, 'deployments/azure-smoke.json');
   const report = JSON.parse(readFileSync(reportPath, 'utf8'));
-  report.azureChecks = { restartPersistence: 'passed', cors: 'passed', requestSize: 'passed', rateLimit: 'passed', rollback: deployed.previous ? 'passed' : 'not applicable: first deployment', coldStartReadiness: 'passed within bounded readiness allowance' };
+  report.azureChecks = { restartPersistence: 'passed', cors: 'passed', requestSize: 'passed', rateLimit: 'passed', logRedaction: 'passed', rollback: deployed.previous ? 'passed' : 'not applicable: first deployment', coldStartReadiness: 'passed within bounded readiness allowance' };
   writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
   console.log('Azure transaction smoke, restart persistence, CORS and rate limiting passed');
 }
