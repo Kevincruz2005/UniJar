@@ -12,14 +12,15 @@ if (![31337, 11155111].includes(chainId)) throw new Error('Only Anvil 31337 and 
 export const rpc = chainId === 31337 ? process.env.RPC_URL ?? 'http://127.0.0.1:18545' : process.env.SEPOLIA_RPC_URL;
 if (!rpc) throw new Error('Missing SEPOLIA_RPC_URL in .local/sepolia.env');
 export const client = createPublicClient({ transport: http(rpc, { timeout: 10000, retryCount: 1 }) });
-export const accounts = JSON.parse(readFileSync(resolve(root, 'deployments/accounts.json'), 'utf8')).accounts as Record<string, Address>;
+export const accounts = JSON.parse(readFileSync(resolve(root, chainId === 31337 ? '.local/local-accounts.json' : 'deployments/accounts.json'), 'utf8')).accounts as Record<string, Address>;
 export function artifact(path: string): { abi: Abi; bytecode: { object: Hex } } { return JSON.parse(readFileSync(resolve(root, path), 'utf8')); }
 export const saleArtifact = () => artifact('contracts/out/UniJar.sol/UniJar.json');
 export const tokenArtifact = () => artifact('contracts/out/FixtureToken.sol/FixtureToken.json');
 export async function assertChain() { if (await client.getChainId() !== chainId) throw new Error('RPC chain mismatch'); }
 export async function broadcast(data: Hex, to: Address | undefined, signer = 'operator'): Promise<Hex> {
   await assertChain();
-  const args = ['send', '--async', '--chain', String(chainId), '--rpc-timeout', '15', '--keystore', resolve(root, '.local/keystores', signer), '--password-file', resolve(root, '.local/account-password')];
+  const alias = chainId === 31337 ? `local-${signer}` : signer;
+  const args = ['send', '--async', '--chain', String(chainId), '--rpc-timeout', '15', '--keystore', resolve(root, '.local/keystores', alias), '--password-file', resolve(root, '.local/account-password')];
   if (to) args.push(to, '--data', data); else args.push('--create', data);
   try {
     const output = execFileSync(resolve(root, '.tools/cast'), args, { env: { ...process.env, ETH_RPC_URL: rpc }, encoding: 'utf8', timeout: 60000, stdio: ['ignore', 'pipe', 'pipe'] }).trim();

@@ -9,14 +9,19 @@ import { root, chainId, client, accounts, artifact, assertChain, broadcast, conf
 async function main() {
   await assertChain();
   execFileSync('git', ['diff', '--quiet', 'HEAD'], { cwd: root });
-  const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+  let sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
   const name = chainId === 31337 ? 'local' : 'sepolia';
   const output = resolve(root, `deployments/${name}.json`);
   const pendingPath = resolve(root, chainId === 31337 ? '.local/local.pending.json' : 'deployments/sepolia.pending.json');
   mkdirSync(resolve(root, '.local'), { recursive: true });
   type Pending = { sourceCommit: string; chainId: number; transactions: Record<string, Hex>; deployments: Manifest['deployments'] };
   const p: Pending = existsSync(pendingPath) ? JSON.parse(readFileSync(pendingPath, 'utf8')) : { sourceCommit, chainId, transactions: {}, deployments: {} };
-  if (p.sourceCommit !== sourceCommit || p.chainId !== chainId) throw new Error('Pending deployment belongs to another commit/chain; inspect it before resuming');
+  if (p.chainId !== chainId) throw new Error('Pending deployment belongs to another chain');
+  if (p.sourceCommit !== sourceCommit) {
+    // Documentation/tooling commits may follow a deployment without changing its source identity.
+    execFileSync('git', ['diff', '--quiet', p.sourceCommit, 'HEAD', '--', 'contracts', 'oracle-contracts', 'backend/src', 'backend/Dockerfile', 'backend/package.json', 'backend/package-lock.json', 'scripts/bootstrap.sh', 'docs/SOURCES.md'], { cwd: root });
+    sourceCommit = p.sourceCommit;
+  }
   const save = () => { writeFileSync(`${pendingPath}.tmp`, json(p)); renameSync(`${pendingPath}.tmp`, pendingPath); };
   async function transaction(stage: string, data: Hex, to?: Address) {
     if (!p.transactions[stage]) { p.transactions[stage] = await broadcast(data, to); save(); }
