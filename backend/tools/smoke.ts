@@ -6,7 +6,7 @@ import type { Address, Hex } from 'viem';
 import { buildApp } from '../src/app.js';
 import { rpcGateway } from '../src/gateway.js';
 import { loadManifest, loadAbis } from '../src/manifest.js';
-import { root, chainId, rpc, client, accounts, assertChain, broadcast, confirm, read, json } from './runtime.js';
+import { root, chainId, rpc, client, accounts, artifact, assertChain, broadcast, confirm, read, write, json } from './runtime.js';
 
 async function main() {
   await assertChain();
@@ -36,6 +36,11 @@ async function main() {
     } else while ((await client.getBlock()).timestamp < BigInt(expiry)) { console.log('Waiting for real lot expiry'); await new Promise(r => setTimeout(r, 15000)); }
   }
   try {
+    if (chainId === 11155111) {
+      // Controlled fixture maintenance is signed locally and never added to the API allowlist.
+      const fixtureAbi = artifact('oracle-contracts/out/LiquidityFixture.sol/LiquidityFixture.json').abi;
+      const activity = await write(a.fixture, fixtureAbi, 'mint', [-887220, 887220, 1000000000n]); hashes.push(activity.transactionHash);
+    }
     assert.equal((await api('/healthz')).status, 200); assert.equal((await api('/readyz')).status, 200);
     const cfg = await api('/v1/config'); assert.equal(cfg.body.data.manifest.sourceCommit, manifest.sourceCommit); assert.equal(cfg.body.data.adopted, true);
     const inv = await api('/v1/inventory'); assert.equal(inv.status, 200);

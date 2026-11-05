@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, writeFileSync, chmodSync, mkdirSync, unlinkSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, chmodSync, mkdirSync, unlinkSync, mkdtempSync, rmSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { loadManifest } from '../src/manifest.js';
@@ -12,8 +12,8 @@ if (!groupName.startsWith('unijar-')) throw new Error('Only a project-specific u
 mkdirSync(resolve(root, '.local'), { recursive: true });
 const dockerEnv = { ...process.env };
 if (!dockerEnv.DOCKER_HOST && existsSync('/run/user/1000/unijar-docker.sock')) dockerEnv.DOCKER_HOST = 'unix:///run/user/1000/unijar-docker.sock';
-function run(file: string, args: string[], options: { timeout?: number; env?: NodeJS.ProcessEnv } = {}) {
-  return execFileSync(file, args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: options.timeout ?? 180000, env: options.env ?? process.env }).trim();
+function run(file: string, args: string[], options: { timeout?: number; env?: NodeJS.ProcessEnv; input?: string } = {}) {
+  return execFileSync(file, args, { cwd: root, encoding: 'utf8', stdio: [options.input === undefined ? 'ignore' : 'pipe', 'pipe', 'pipe'], input: options.input, timeout: options.timeout ?? 180000, env: options.env ?? process.env }).trim();
 }
 const az = (args: string[], timeout?: number): any => JSON.parse(run('az', [...args, '--only-show-errors', '-o', 'json'], { timeout }) || 'null');
 async function preflight() {
@@ -111,8 +111,16 @@ async function main() {
   const parameters = ['--location', location, '--template-file', 'infra/main.bicep', '--parameters', `location=${location}`, `groupName=${groupName}`];
   const foundation = az(['deployment', 'sub', 'create', '--name', 'unijar-foundation', ...parameters, 'deployApplication=false'], 900000);
   const registry = foundation.properties.outputs.registryName.value;
-  // Remote context is explicitly allowlisted by .dockerignore.
-  az(['acr', 'build', '--registry', registry, '--image', `unijar:${m.sourceCommit}`, '--file', 'backend/Dockerfile', '--no-logs', '.'], 900000);
+  // Push the exact locally tested image; no registry admin password or ACR build worker.
+  const login = az(['acr', 'login', '--name', registry, '--expose-token']);
+  const authDirectory = mkdtempSync(resolve(root, '.local/acr-auth-')); chmodSync(authDirectory, 0o700);
+  const authEnv = { ...dockerEnv, DOCKER_CONFIG: authDirectory };
+  try {
+    run('docker', ['login', login.loginServer, '--username', '00000000-0000-0000-0000-000000000000', '--password-stdin'], { env: authEnv, input: `${login.accessToken}\n` });
+    const image = `${login.loginServer}/unijar:${m.sourceCommit}`;
+    run('docker', ['tag', `unijar:${m.sourceCommit}`, image], { env: authEnv });
+    run('docker', ['push', image], { env: authEnv, timeout: 900000 });
+  } finally { rmSync(authDirectory, { recursive: true, force: true }); }
   const digest = az(['acr', 'repository', 'show', '--name', registry, '--image', `unijar:${m.sourceCommit}`]).digest;
   assert.match(digest, /^sha256:[a-f0-9]{64}$/);
   let previous: any;
