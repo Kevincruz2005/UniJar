@@ -4,6 +4,7 @@ import io
 import json
 import pathlib
 import platform
+import subprocess
 import tarfile
 import urllib.request
 
@@ -18,8 +19,10 @@ name = f'foundry_v1.9.0_linux_{arch}.tar.gz'
 with urllib.request.urlopen('https://api.github.com/repos/foundry-rs/foundry/releases/tags/v1.9.0', timeout=30) as r:
     release = json.load(r)
 asset = next(x for x in release['assets'] if x['name'] == name)
-with urllib.request.urlopen(asset['browser_download_url'], timeout=60) as r:
-    data = r.read()
+cached = destination / 'foundry.tar.gz'
+if not cached.exists():
+    subprocess.run(['curl', '-fL', '--connect-timeout', '15', '--max-time', '180', '--retry', '2', asset['browser_download_url'], '-o', str(cached)], check=True)
+data = cached.read_bytes()
 digest = asset.get('digest')
 if not digest or digest != 'sha256:' + hashlib.sha256(data).hexdigest():
     raise SystemExit('Missing or mismatched upstream SHA256')
