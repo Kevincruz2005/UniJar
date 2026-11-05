@@ -23,3 +23,4 @@ rm -f .local/local.pending.json deployments/local.json
 CHAIN_ID=31337 backend/node_modules/.bin/tsx backend/tools/deploy.ts
 python3 scripts/export-assets.py deployments/local.json
 CHAIN_ID=31337 backend/node_modules/.bin/tsx backend/tools/smoke.ts
+if [[ "${LOCAL_CONTAINER:-0}" == 1 ]]; then bash scripts/container-smoke.sh; fi

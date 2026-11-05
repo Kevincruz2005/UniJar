@@ -71,7 +71,14 @@ export async function buildApp(options: { manifest: Manifest; gateway: Gateway; 
     const [now, paused] = await Promise.all([g.timestamp(block), sale('paused', [], block)]);
     const nextActions: string[] = [];
     if (lot.state === 1) {
-      if (now < lot.expiry) { if (!paused) nextActions.push(lot.mode === 1 ? 'bid' : 'fillDirect'); if (lot.highest === 0n) nextActions.push(lot.mode === 1 ? 'cancelAuction' : 'cancelDirect'); }
+      if (now < lot.expiry) {
+        if (!paused) {
+          if (lot.mode === 1) nextActions.push('bid');
+          else try { await sale('quoteDirect', [uint(request.params.id)], block); nextActions.push('fillDirect'); }
+          catch (error) { if (!isRevert(error)) throw error; }
+        }
+        if (lot.highest === 0n) nextActions.push(lot.mode === 1 ? 'cancelAuction' : 'cancelDirect');
+      }
       else nextActions.push(lot.mode === 1 ? 'finalizeAuction' : 'expireDirect');
     } else if ([3, 4].includes(lot.state)) nextActions.push('recover');
     return clean({ block, data: { lot, nextActions } });

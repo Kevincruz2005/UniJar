@@ -42,6 +42,7 @@ contract RealV3Test is Test {
         vm.expectRevert(); IReferenceReader(reader).validate(pool,address(this),address(asset),address(usd),3000);
         vm.expectRevert(); IReferenceReader(reader).validate(pool,factory,address(asset),address(usd),500);
         vm.expectRevert(); IFixture(fixture).uniswapV3MintCallback(0,0,'');
+        {
         TokenJar jar=new TokenJar();
         UniJar sale=new UniJar(address(jar),address(0x777),address(this),address(usd),reader,factory);
         jar.setReleaser(address(sale)); sale.setAssetMode(address(asset),UniJar.Mode.Direct);
@@ -54,5 +55,17 @@ contract RealV3Test is Test {
         assertApproxEqAbs(payment,990000,100); // independent one-USD base-unit vector, tick quantization
         usd.approve(address(sale),payment); sale.fillDirect(id,payment,uint64(block.timestamp),hash,address(this));
         assertEq(usd.balanceOf(address(0x777)),payment); assertEq(sale.activeId(),0);
+        }
+        rounding(reader,pool,fixture,factory,address(asset),address(usd),assetFirst);
+    }
+    function rounding(address reader,address pool,address fixture,address factory,address asset,address usd,bool assetFirst) internal {
+        vm.warp(block.timestamp+601);
+        IFixture(fixture).swap(true,assetFirst?int256(1e18):int256(1e6),4295128740);
+        vm.warp(block.timestamp+1201); IFixture(fixture).mint(-887220,887220,1e9);
+        uint32[] memory secondsAgos=new uint32[](2);secondsAgos[0]=1800;
+        (int56[] memory cumulatives,)=IV3Pool(pool).observe(secondsAgos);
+        int56 delta=cumulatives[1]-cumulatives[0];int56 expected=delta/1800;if(delta<0 && delta%1800!=0)expected--;
+        (,int24 average,,,)=IReferenceReader(reader).read(pool,factory,asset,usd,3000,1e18,1800);
+        assertEq(int256(average),int256(expected));
     }
 }

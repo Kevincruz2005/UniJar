@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --project tsconfig.tools.json",
     "test": "tsx --test test/*.test.ts",
     "start": "node dist/server.js"
   },

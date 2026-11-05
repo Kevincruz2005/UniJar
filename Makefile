@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-.PHONY: bootstrap contracts check local-smoke accounts deploy-sepolia azure-plan deploy-azure smoke-azure
+.PHONY: bootstrap contracts check local-smoke container-smoke accounts deploy-sepolia azure-plan deploy-azure smoke-azure
 bootstrap:
 	bash scripts/bootstrap.sh
 	npm ci --prefix backend
@@ -13,6 +13,8 @@ check: contracts
 	npm --prefix backend run build
 local-smoke: check
 	bash scripts/local-smoke.sh
+container-smoke: check
+	LOCAL_CONTAINER=1 bash scripts/local-smoke.sh
 accounts:
 	python3 scripts/accounts.py
 deploy-sepolia: check

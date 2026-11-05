@@ -92,6 +92,8 @@ test('wrong chain/code and RPC outage fail readiness while liveness survives wit
 test('reference refusal is business state, outage is 503, pauses retain refunds', async t => {
   const fake = new Fake(); fake.revertQuote = true; const app = await appFor(fake); t.after(() => app.close());
   const refused = await app.inject('/v1/lots/1/quote'); assert.equal(refused.statusCode, 200); assert.equal(refused.json().data.reason, 'REFERENCE_REFUSED');
+  const next = (await app.inject('/v1/lots/1')).json().data.nextActions;
+  assert.ok(!next.includes('fillDirect')); assert.ok(next.includes('cancelDirect'));
   fake.paused = true; assert.equal((await app.inject('/v1/lots/1/quote')).json().data.reason, 'ADMISSION_PAUSED');
   assert.equal((await app.inject(`/v1/credits/${addr(22)}`)).statusCode, 200);
   fake.down = true; assert.equal((await app.inject('/v1/lots/1/quote')).statusCode, 503);
