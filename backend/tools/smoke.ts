@@ -21,7 +21,11 @@ async function main() {
     return { status: response.status, body: await response.json() };
   }
   const tokenBalance = async (token: Address, address: Address) => await read(token, abis.token, 'balanceOf', [address]) as bigint;
-  const lot = async (id: string) => (await api(`/v1/lots/${id}`)).body.data.lot;
+  const lot = async (id: string) => {
+    const response = await api(`/v1/lots/${id}`); assert.equal(response.status, 200);
+    const independent = await client.readContract({ address: a.releaser, abi: abis.sale, functionName: 'getLot', args: [BigInt(id)], blockNumber: BigInt(response.body.block) });
+    assert.deepEqual(response.body.data.lot, JSON.parse(json(independent))); return response.body.data.lot;
+  };
   async function send(action: string, params: unknown, signer = 'operator') {
     const prepared = await api('/v1/transactions/prepare', { action, sender: accounts[signer], params });
     assert.equal(prepared.status, 200, `${action}: ${JSON.stringify(prepared.body)}`);
@@ -43,6 +47,8 @@ async function main() {
     }
     assert.equal((await api('/healthz')).status, 200); assert.equal((await api('/readyz')).status, 200);
     const cfg = await api('/v1/config'); assert.equal(cfg.body.data.manifest.sourceCommit, manifest.sourceCommit); assert.equal(cfg.body.data.adopted, true);
+    const adopted = await client.readContract({ address: a.jar, abi: abis.jar, functionName: 'releaser', blockNumber: BigInt(cfg.body.block) }); assert.equal(String(adopted).toLowerCase(), cfg.body.data.currentReleaser.toLowerCase());
+    const unauthorized = await api('/v1/transactions/prepare', { action: 'setPaused', sender: accounts['buyer-a'], params: { paused: false } }); assert.equal(unauthorized.status, 409);
     const inv = await api('/v1/inventory'); assert.equal(inv.status, 200);
     for (const entry of inv.body.data) {
       const at = BigInt(inv.body.block);
@@ -68,6 +74,7 @@ async function main() {
     await send('approvePayout', { id: auctionId, amount: '1100000' }, 'buyer-b');
     await send('bid', { id: auctionId, amount: '1100000', recipient: accounts['buyer-b'] }, 'buyer-b');
     const credit = await api(`/v1/credits/${accounts['buyer-a']}`); assert.equal(credit.body.data.credit, '1000000');
+    const creditOnchain = await client.readContract({ address: a.releaser, abi: abis.sale, functionName: 'credits', args: [accounts['buyer-a']], blockNumber: BigInt(credit.body.block) }); assert.equal(String(creditOnchain), credit.body.data.credit);
     const refundedBefore = await tokenBalance(a.payout, accounts['buyer-a']!); await send('withdrawRefund', {}, 'buyer-a'); assert.equal(await tokenBalance(a.payout, accounts['buyer-a']!), refundedBefore + 1000000n);
     const treasuryBefore = await tokenBalance(a.payout, accounts.treasury!); const wonBefore = await tokenBalance(a.auctionAsset, accounts['buyer-b']!);
     await advance(expiry); await send('finalizeAuction', { id: auctionId }, 'buyer-b');
