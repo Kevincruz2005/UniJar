@@ -178,3 +178,14 @@ test('decoded custom errors and direct bounds preserve contract authority withou
   const response = await app.inject({method:'POST',url:'/v1/transactions/prepare',payload:{action:'setPaused',sender:addr(22),params:{paused:true}}});
   assert.equal(response.statusCode,409); assert.deepEqual(response.json(),{error:'UNAUTHORIZED'});
 });
+
+test('refused quotes block approval preparation as business state and preserve outage reporting', async t => {
+  const fake = new Fake(); fake.revertQuote = true; fake.reference = [1n, 0, 0, 1000000n, 1000];
+  const app = await appFor(fake); t.after(() => app.close());
+  const payload = {action:'approvePayout',sender:addr(22),params:{id:'1',amount:'990000'}};
+  const response = await app.inject({method:'POST',url:'/v1/transactions/prepare',payload});
+  assert.equal(response.statusCode,409); assert.deepEqual(response.json(),{error:'STALE_OBSERVATION'});
+  fake.readerError = new Error('private RPC detail');
+  const outage = await app.inject({method:'POST',url:'/v1/transactions/prepare',payload});
+  assert.equal(outage.statusCode,503); assert.ok(!outage.body.includes('private RPC detail'));
+});

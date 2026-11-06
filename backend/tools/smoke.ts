@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import assert from 'node:assert/strict';
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { Address, Hex } from 'viem';
 import { buildApp } from '../src/app.js';
@@ -12,7 +12,7 @@ async function main() {
   await assertChain();
   const manifest = loadManifest(resolve(root, `deployments/${chainId === 31337 ? 'local' : 'sepolia'}.json`));
   const abis = loadAbis(resolve(root, 'backend/public')); const a = manifest.addresses as Record<keyof typeof manifest.addresses, Address>;
-  const local = process.env.API_URL ? undefined : await buildApp({ manifest, gateway: rpcGateway(rpc!), abis, allowedOrigins: ['https://demo.example'] });
+  const local = process.env.API_URL ? undefined : await buildApp({ manifest, version: JSON.parse(readFileSync(resolve(root, 'backend/public/build.json'), 'utf8')).sourceCommit, gateway: rpcGateway(rpc!), abis, allowedOrigins: ['https://demo.example'] });
   const url = process.env.API_URL ?? await local!.listen({ host: '127.0.0.1', port: 0 });
   if (chainId === 11155111 && process.env.API_URL && !url.startsWith('https://')) throw new Error('Public smoke requires HTTPS');
   const hashes: Hex[] = [];

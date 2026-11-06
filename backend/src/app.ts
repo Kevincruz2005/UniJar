@@ -55,6 +55,15 @@ export async function buildApp(options: { manifest: Manifest; gateway: Gateway; 
     if (id === 0n || id >= (await sale('nextId', [], block) as bigint)) throw new HttpError(404, 'LOT_NOT_FOUND');
     return await sale('getLot', [id], block) as Lot;
   }
+  async function quoteForPreparation(id: bigint, lot: Lot, block: bigint): Promise<[bigint, Hex]> {
+    try { return await sale('quoteDirect', [id], block) as [bigint, Hex]; }
+    catch (error) {
+      if (!isRevert(error)) throw error;
+      if (lot.mode !== 2 || lot.state !== 1 || await g.timestamp(block) >= lot.expiry) throw new HttpError(409, 'WRONG_STATE');
+      const refused = await referenceRefusal(g, a.reader, a.factory, a.payout, lot, block, error);
+      throw new HttpError(409, refused.reason);
+    }
+  }
   const errors = { 400: s.errorResponse, 404: s.errorResponse, 409: s.errorResponse, 413: s.errorResponse, 429: s.errorResponse, 503: s.errorResponse };
   app.get('/healthz', { config: { rateLimit: false }, schema: { response: { 200: s.object({ status: { const: 'ok' }, version: { type: 'string' }, chainId: { type: 'integer' } }) } } }, async () => ({ status: 'ok', version, chainId: m.chainId }));
   app.get('/readyz', { config: { rateLimit: false }, schema: { response: { 200: s.object({ status: { const: 'ready' }, version: { type: 'string' }, chainId: { type: 'integer' } }), 503: s.errorResponse } } }, async () => { await ready(); return { status: 'ready', version, chainId: m.chainId }; });
@@ -124,21 +133,14 @@ export async function buildApp(options: { manifest: Manifest; gateway: Gateway; 
       if (String(p.expectedPolicyHash).toLowerCase() !== expectedPolicyHash?.toLowerCase()) throw new HttpError(409, 'POLICY_MISMATCH');
       if (uint(p.deadline, 64) < await g.timestamp(block)) throw new HttpError(409, 'DEADLINE_EXPIRED');
       if (sender.toLowerCase() === String(await sale('treasury', [], block)).toLowerCase()) throw new HttpError(409, 'TREASURY_SELF_PAYMENT');
-      try {
-        const [payment] = await sale('quoteDirect', [id], block) as [bigint, Hex];
-        if (payment > uint(p.maximum)) throw new HttpError(409, 'MAXIMUM_EXCEEDED');
-      } catch (error) {
-        if (!isRevert(error)) throw error;
-        if (preparedLot!.mode !== 2 || preparedLot!.state !== 1 || await g.timestamp(block) >= preparedLot!.expiry) throw new HttpError(409, 'WRONG_STATE');
-        const refused = await referenceRefusal(g, a.reader, a.factory, a.payout, preparedLot!, block, error);
-        throw new HttpError(409, refused.reason);
-      }
+      const [payment] = await quoteForPreparation(id!, preparedLot!, block);
+      if (payment > uint(p.maximum)) throw new HttpError(409, 'MAXIMUM_EXCEEDED');
     }
     switch (action) {
       case 'approvePayout': {
         const lot = await getLot(id!, block); const amount = uint(p.amount);
         if (amount === (1n << 256n) - 1n || lot.state !== 1 || await g.timestamp(block) >= lot.expiry) throw new HttpError(400, 'INVALID_APPROVAL');
-        if (lot.mode === 2) { const [quote] = await sale('quoteDirect', [id], block) as [bigint, Hex]; if (amount !== quote) throw new HttpError(400, 'APPROVAL_MUST_EQUAL_QUOTE'); }
+        if (lot.mode === 2) { const [quote] = await quoteForPreparation(id!, lot, block); if (amount !== quote) throw new HttpError(400, 'APPROVAL_MUST_EQUAL_QUOTE'); }
         else if (amount < (lot.highest === 0n ? lot.reserve : lot.highest + lot.increment)) throw new HttpError(400, 'APPROVAL_BELOW_BID');
         target = a.payout; abi = abis.token; method = 'approve'; args = [a.releaser, amount]; break;
       }
