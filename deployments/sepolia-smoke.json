@@ -1,30 +1,44 @@
 {
   "chainId": 11155111,
+  "apiSourceCommit": "aa078773371cdf668c390f25f6322c3a4f0bfb6a",
+  "expectedTransactionCount": 16,
   "sourceCommit": "62ab1501d04a1febfc51042951c9480f9bfd786f",
   "api": "local ephemeral HTTP API",
   "passed": [
     "chain/config/code",
     "block-tagged reads",
     "direct bounds and sale",
-    "auction outbid/refund/settlement",
+    "auction self-outbid/outbid/refund/settlement",
     "permissionless no-bid recovery",
-    "invalid action/target"
+    "invalid action/target",
+    "live metadata/policies/review inventory"
   ],
   "transactions": [
-    "0xadb4df665f307bde324ca3d99e5d99d4cb116a0c3e228c3a0109dc07a6ea08e4",
-    "0xb298682d2db6034e53770ac5688225b1c41f9eb4038a0403be5794a370ea725b",
-    "0x368a5a6551306fe830836fe120c4c3320385b8a25e09c65a3f7f315d8a1d9256",
-    "0x3e452a9f32c9d71f9378d26eba413585dbf9502dde22e1ea601e73ea7459ca77",
-    "0x2060e959bbe6686ad8e3b0abc8bc6ed40f36d69e1019a023c20ce7501c7be27c",
-    "0xc4db14e72096302e9d31356a4561263321dadbfae4a82d1130d186413c8b7732",
-    "0xe0d6ef523a7a08aa12b515fd51877e68f45e4ccae02f4ebfcdc2a4abd632c428",
-    "0x03ce6f4c8469eda5c4d214a67688c9634e1df929e5ec3d41f126929128b0c954",
-    "0x7849d672ff41816fe72d3d007a895cc42e8d75082031ab03a3772e4d7c49db79",
-    "0x323d3e564ef1713344d887105a845f49bb55c30b541f074c984e81034d6cb95b",
-    "0x6d52ba14a1e6af42751c3a961a231f23912a9cbd27a2be6bc6d4cbad1d3cf657",
-    "0x8a70145ba57653f49aa7101c69f528f350a2145910d68a0b7f456f562e00c913",
-    "0xe5839ac89a858927d5d584b847803fe2071ef274bb089bb10899cfa80f40d8d7",
-    "0xca97cab3d642be1519cae8949b037610f8d2ab44144234697513e546b9ec6374"
+    "0x7766d33be1a620d0811f43014e7b298c9f313e3f69264783a544d212571291c8",
+    "0xa5ebcd7c7ff2e236cf9a2ad0884eb4e33787059854fc5dcbce3267bfe3d4b584",
+    "0x411e236b4f86688644c423ddbc73dc5d8b4ec8798c92ddbcd2448dfe958f5e20",
+    "0x65c0006a456a774154cb130788a31c7cde463c82c68c1e367847431576860f10",
+    "0x268a772d587a8507fa395283b276155c663fc01d84e56f13cc7a40bd92c6246b",
+    "0x8bed4e82dabd53087835bb0d940f99c070e465affc97d29b5e18dfc3be9c0327",
+    "0xf962212350469b6af508a63984e0feb086a65141667e748ca78a34a9634ad9f4",
+    "0x28abd30d69fb551e257f3de78c1182f4b72c14399a05c43ddeb273276533b0c2",
+    "0xa73eb40e4e1deda4b52e360f355cf8e3fd403025b28266ea10937d2a566b933c",
+    "0x01a651a42bbc337b6adce4a6a4e25918e815497d1a067a6e3935aa80686d5e77",
+    "0xb77a8a7ab591f8f18bbbe92d7843ea2551f1323cd53724fd88d39539b6d4f275",
+    "0x505c2c33651049a7e788ddbb78d1fbda476238ae62a15b7515308ca45738d564",
+    "0x16c50a3c0d84e5e7f12cb7771dbb7a98794f4cc3bb0c94ed06adefb05736ad09",
+    "0x76db0f69eb03cdcf85c21c8e7b1a7c4dc2953bd63f7997567e48765bd2c60f68",
+    "0xf1d3ade3b03edb8d9441a33cb1304c60f9830b21456559123651517837cd487b",
+    "0xded15c1cab555e6d3652004211d9ce3e4462a4dc6e48d438330e1b8dfe33453d"
   ],
-  "timestamp": "2026-11-05T20:51:19.790Z"
+  "timestamp": "2026-11-06T03:09:28.375Z",
+  "finalBlock": "12073819",
+  "finalState": {
+    "activeId": "0",
+    "bidLiability": "0",
+    "refundLiability": "0",
+    "directPayments": "2969709",
+    "treasuryPayoutBalance": "6369709",
+    "heldForReviewBalance": "25000000000000000000"
+  }
 }
