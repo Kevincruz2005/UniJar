@@ -4,10 +4,11 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { Address, Hex } from 'viem';
 import { buildApp } from '../src/app.js';
-import { rpcGateway } from '../src/gateway.js';
+import { rpcFailureKind, rpcGateway } from '../src/gateway.js';
 import { loadManifest, loadAbis } from '../src/manifest.js';
 import { root, chainId, rpc, client, accounts, artifact, assertChain, broadcast, confirm, read, write, json } from './runtime.js';
 
+let stage = 'initialization';
 async function main() {
   await assertChain();
   const manifest = loadManifest(resolve(root, `deployments/${chainId === 31337 ? 'local' : 'sepolia'}.json`));
@@ -17,6 +18,7 @@ async function main() {
   if (chainId === 11155111 && process.env.API_URL && !url.startsWith('https://')) throw new Error('Public smoke requires HTTPS');
   const hashes: Hex[] = [];
   async function api(path: string, payload?: unknown) {
+    stage = payload && typeof payload === 'object' && 'action' in payload ? `prepare ${String(payload.action)}` : `read ${path}`;
     for (let attempt = 0; attempt < 3; attempt++) {
       // Reads and unsigned preparation are safe to retry; signed broadcasts stay outside this helper.
       const response = await fetch(`${url}${path}`, { method: payload ? 'POST' : 'GET', headers: payload ? { 'content-type': 'application/json' } : {}, body: payload ? JSON.stringify(payload) : undefined, signal: AbortSignal.timeout(20000) });
@@ -38,9 +40,11 @@ async function main() {
     assert.equal(prepared.status, 200, `${action}: ${JSON.stringify(prepared.body)}`);
     const tx = prepared.body; assert.equal(tx.chainId, chainId); assert.equal(tx.from.toLowerCase(), accounts[signer]!.toLowerCase()); assert.equal(tx.value, '0');
     assert.ok([a.releaser, a.payout].some(x => x.toLowerCase() === tx.to.toLowerCase()));
+    stage = `broadcast/confirm ${action}`;
     const receipt = await confirm(await broadcast(tx.data as Hex, tx.to as Address, signer)); hashes.push(receipt.transactionHash); return receipt;
   }
   async function advance(expiry: number) {
+    stage = 'wait/advance lot expiry';
     if (chainId === 31337) {
       await client.request({ method: 'evm_setNextBlockTimestamp' as never, params: [expiry] as never });
       await client.request({ method: 'evm_mine' as never, params: [] as never });
@@ -82,7 +86,7 @@ async function main() {
     const before = await tokenBalance(a.payout, accounts.treasury!); const inventoryBefore = await tokenBalance(a.directAsset, accounts['buyer-a']!);
     await send('fillDirect', { ...bounds, maximum: payment.toString() }, 'buyer-a');
     assert.equal(await tokenBalance(a.payout, accounts.treasury!), before + payment); assert.equal(await tokenBalance(a.directAsset, accounts['buyer-a']!), inventoryBefore + 10n ** 18n); assert.equal((await lot(directId)).state, 2);
-    const auctionId = String(await read(a.releaser, abis.sale, 'nextId')); const expiry = await timestamp() + (chainId === 31337 ? 30 : 300);
+    const auctionId = String(await read(a.releaser, abis.sale, 'nextId')); const expiry = await timestamp() + (chainId === 31337 ? 300 : 300);
     await send('openAuction', { asset: a.auctionAsset, quantity: '1000000000000000000', expiry: String(expiry), reserve: '1000000', increment: '100000' });
     await send('approvePayout', { id: auctionId, amount: '1000000' }, 'buyer-a');
     await send('bid', { id: auctionId, amount: '1000000', recipient: accounts['buyer-a'] }, 'buyer-a');
@@ -97,7 +101,7 @@ async function main() {
     const treasuryBefore = await tokenBalance(a.payout, accounts.treasury!); const wonBefore = await tokenBalance(a.auctionAsset, accounts['buyer-b']!);
     await advance(expiry); await send('finalizeAuction', { id: auctionId }, 'buyer-b');
     assert.equal(await tokenBalance(a.payout, accounts.treasury!), treasuryBefore + 1200000n); assert.equal(await tokenBalance(a.auctionAsset, accounts['buyer-b']!), wonBefore + 10n ** 18n);
-    const noBidId = String(await read(a.releaser, abis.sale, 'nextId')); const noBidExpiry = await timestamp() + (chainId === 31337 ? 10 : 60);
+    const noBidId = String(await read(a.releaser, abis.sale, 'nextId')); const noBidExpiry = await timestamp() + (chainId === 31337 ? 120 : 60);
     const jarBefore = await tokenBalance(a.auctionAsset, a.jar);
     await send('openAuction', { asset: a.auctionAsset, quantity: '1000000000000000000', expiry: String(noBidExpiry), reserve: '1000000', increment: '100000' });
     await advance(noBidExpiry); await send('finalizeAuction', { id: noBidId }, 'buyer-a'); await send('recover', { id: noBidId }, 'buyer-b');
@@ -109,4 +113,4 @@ async function main() {
     console.log(json(report));
   } finally { await local?.close(); }
 }
-main().catch(error => { console.error(error instanceof assert.AssertionError ? error.message : 'Smoke failed; no deployed success claimed. Verify manifest, fresh oracle, funding and RPC.'); process.exitCode = 1; });
+main().catch(error => { console.error(error instanceof assert.AssertionError ? error.message : `Smoke failed during ${stage} (${rpcFailureKind(error)}); no deployed success claimed. RPC details suppressed.`); process.exitCode = 1; });
