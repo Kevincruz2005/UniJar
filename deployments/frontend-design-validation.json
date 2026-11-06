@@ -1,0 +1,62 @@
+{
+  "frontend": "https://unijar-web.purplewater-5aec7560.centralindia.azurecontainerapps.io",
+  "chainId": 11155111,
+  "sourceCommit": "25144e369c248e144d5968809c0a7654e64b7a29",
+  "imageDigest": "sha256:d2c07a1ded13690d572c0eb78bcd8ce20a8111cdf1655ee1b85494066bd13903",
+  "verifiedAt": "2026-11-06T09:51:04.648668+00:00",
+  "designReference": {
+    "file": "DESIGN.md",
+    "source": "https://shelby.xyz",
+    "palette": {
+      "paper": "#f7f1e9",
+      "surface": "#fcfaf8",
+      "ink": "#322312",
+      "accent": "#810254",
+      "pink": "#f905a3",
+      "pinkLight": "#fc74cc"
+    },
+    "fonts": "System sans-serif and monospace fallbacks; proprietary fonts are not copied.",
+    "artwork": "Original geometric SVG collection motif"
+  },
+  "local": {
+    "typecheck": "passed",
+    "productionBuild": "passed",
+    "unitAndServerTests": 9,
+    "publicBrowserTests": 6,
+    "walletBrowserScenarios": 5,
+    "confirmedAnvilTransactions": 20
+  },
+  "azure": {
+    "publicBrowserTests": 6,
+    "healthIdentity": "passed",
+    "allowedOrigin": "passed",
+    "mobile390pxOverflow": false,
+    "walletVisibleOnMobile": true,
+    "reducedMotion": "Marquee animation stops when reduced motion is requested.",
+    "apiFollowUp": {
+      "healthz": 200,
+      "readyz": 200,
+      "config": 200,
+      "block": "12075785",
+      "observation": "Transient API 503 responses were observed after browser validation; subsequent health, readiness and config checks returned 200. No backend code or image was changed."
+    }
+  },
+  "manualVisualInspection": [
+    "Landing at 320, 390, 650, 850, 1024 and 1440 CSS pixel widths",
+    "Desktop inventory and lot detail",
+    "Mobile documentation",
+    "Desktop/mobile Azure landing"
+  ],
+  "textContrast": {
+    "inkOnCream": 13.51,
+    "mutedOnCream": 4.65,
+    "plumOnTint": 8.11,
+    "inkOnLightPink": 6.14
+  },
+  "scope": "Visual system and landing illustration; wallet signing, transaction intent, backend and contract code are unchanged.",
+  "priorSepoliaTransactionEvidence": "deployments/frontend-validation.json",
+  "newSepoliaTransactionsForRestyle": 0,
+  "remainingManualChecks": [
+    "Actual MetaMask/Rabby extensions and physical wallet devices remain manual acceptance checks."
+  ]
+}
