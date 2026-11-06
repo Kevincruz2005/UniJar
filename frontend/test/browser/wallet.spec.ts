@@ -117,7 +117,7 @@ test.describe('real-chain browser wallet journeys', () => {
     expect(await balance(asset, accounts['buyer-a']!)).toBe(payerBefore - price);
     expect(await balance(asset, source)).toBe(0n);
     expect(await client.readContract({ address: source, abi: feeAbi, functionName: 'totalFees' })).toBe(feesBefore + fee);
-    await selectWallet(page, 'operator'); const id = await open(page, 'auction', '1');
+    await selectWallet(page, 'operator'); const id = await open(page, 'auction', network === 'local' ? '1' : '3');
     expect(await balance(asset, manifest.addresses.jar)).toBe(jarBefore);
     await selectWallet(page, 'buyer-b'); await approveAndBid(page, '1');
     const lot = await readSale('getLot', [id]) as { expiry: bigint };
