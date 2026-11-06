@@ -75,7 +75,16 @@
       "runtimeMatch": "match",
       "creationMatch": "match",
       "verificationUrl": "https://sourcify.dev/server/v2/contract/11155111/0x2c7b6527e003d81a794d85e786fae2e58e103685"
+    },
+    "feeSource": {
+      "address": "0xa3854b05c6bc2384c15917914cd1afc1ecf248b9",
+      "codeHash": "0x4349e749809dce09121b143380d145c6f7f0c5cac997d9cd66cb1788c6fb9e6c",
+      "verified": true,
+      "match": "match",
+      "exitCode": 0,
+      "jobUrl": "https://sourcify.dev/server/verify-ui/jobs/d95291f5-e21a-4d7a-9d19-2ba7bd3d004d",
+      "sourceCommit": "77536408f49d96bdcf5238aba83becd97332f5b4"
     }
   },
-  "timestamp": "2026-11-06T02:55:13.885Z"
+  "timestamp": "2026-11-06T11:06:50.498Z"
 }

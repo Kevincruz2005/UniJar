@@ -38,7 +38,7 @@ async function main() {
     writeFileSync(resolve(root, `.local/verification/${name}.log`), output);
     const match = await lookup(deployment.address);
     const verified = Boolean(match?.match);
-    evidence.contracts[name] = { address: deployment.address, codeHash: deployment.codeHash, verified, match: match?.match ?? null, exitCode: result.status, jobUrl: output.match(/https:\/\/sourcify.dev\/server\/verify-ui\/jobs\/[a-z0-9-]+/)?.[0] ?? null };
+    evidence.contracts[name] = { address: deployment.address, codeHash: deployment.codeHash, sourceCommit: name === 'feeSource' ? m.feeSource?.sourceCommit : m.sourceCommit, verified, match: match?.match ?? null, exitCode: result.status, jobUrl: output.match(/https:\/\/sourcify.dev\/server\/verify-ui\/jobs\/[a-z0-9-]+/)?.[0] ?? null };
     evidence.timestamp = new Date().toISOString(); writeFileSync(evidencePath, JSON.stringify(evidence, null, 2) + '\n');
     console.log(`${name}: ${verified ? 'source verified' : 'verification pending; inspect ignored diagnostic'}`);
   }
