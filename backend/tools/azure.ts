@@ -197,7 +197,7 @@ async function main() {
   const envFile = resolve(root, '.local/container.env');
   writeFileSync(envFile, `RPC_URL=${process.env.SEPOLIA_RPC_URL}\nEXPECTED_CHAIN_ID=11155111\n`, { mode: 0o600 }); chmodSync(envFile, 0o600);
   try {
-    run('docker', ['run', '-d', '--rm', '--name', 'unijar-preflight', '--network', 'host', '--env-file', envFile, `unijar:${sourceCommit}`], { env: dockerEnv });
+    run('docker', ['run', '-d', '--rm', '--name', 'unijar-preflight', '--network', 'host', '--env-file', envFile, '-e', 'INGRESS_MODE=azure', `unijar:${sourceCommit}`], { env: dockerEnv });
     const localUrl = dockerEnv.DOCKER_HOST?.includes('unijar-docker') ? 'http://127.0.0.1:18080' : 'http://127.0.0.1:8080';
     await waitReady(localUrl, sourceCommit); assert.equal(run('docker', ['exec', 'unijar-preflight', 'id', '-u'], { env: dockerEnv }), '1000');
   } finally { try { run('docker', ['stop', 'unijar-preflight'], { env: dockerEnv }); } catch { /* may not have started */ } unlinkSync(envFile); }
