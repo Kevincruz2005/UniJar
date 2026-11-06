@@ -12,7 +12,7 @@ param corsOrigins string = ''
 
 resource registry 'Microsoft.ContainerRegistry/registries@2025-04-01' existing = { name: registryName }
 resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' existing = { name: identityName }
-resource environment 'Microsoft.App/managedEnvironments@2025-01-01' existing = { name: environmentName }
+resource environment 'Microsoft.App/managedEnvironments@2026-07-01' existing = { name: environmentName }
 resource app 'Microsoft.App/containerApps@2025-01-01' = {
   name: 'unijar-api'
   location: location
@@ -27,7 +27,7 @@ resource app 'Microsoft.App/containerApps@2025-01-01' = {
       secrets: [{ name: 'sepolia-rpc', value: rpcUrl }]
     }
     template: {
-      revisionSuffix: '${take(sourceCommit, 8)}-${substring(imageDigest, 7, 8)}'
+      revisionSuffix: 'r-${take(sourceCommit, 8)}-${substring(imageDigest, 7, 8)}'
       containers: [{
         name: 'api'
         image: '${registry.properties.loginServer}/unijar@${imageDigest}'

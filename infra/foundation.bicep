@@ -32,10 +32,11 @@ resource logs 'Microsoft.OperationalInsights/workspaces@2025-02-01' = {
     workspaceCapping: { dailyQuotaGb: json('0.1') }
   }
 }
-resource environment 'Microsoft.App/managedEnvironments@2025-01-01' = {
+resource environment 'Microsoft.App/managedEnvironments@2026-07-01' = {
   name: 'unijar-env'
   location: location
   properties: {
+    environmentMode: 'WorkloadProfiles'
     workloadProfiles: [{ name: 'Consumption', workloadProfileType: 'Consumption' }]
     appLogsConfiguration: {
       destination: 'log-analytics'

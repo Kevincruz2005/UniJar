@@ -111,23 +111,25 @@ async function smoke() {
 async function main() {
   const mode = process.argv[2];
   if (mode === 'smoke') { await smoke(); return; }
-  if (!['plan', 'deploy'].includes(mode ?? '')) throw new Error('Use plan, deploy or smoke');
+  if (!['plan', 'deploy', 'resume'].includes(mode ?? '')) throw new Error('Use plan, deploy, resume or smoke');
+  const resuming = mode === 'resume';
   const subscription = await preflight();
   if (mode === 'plan') {
     const result = az(['deployment', 'sub', 'what-if', '--name', 'unijar-plan', '--location', location, '--template-file', 'infra/main.bicep', '--parameters', `location=${location}`, `groupName=${groupName}`, 'deployApplication=false', '--result-format', 'ResourceIdOnly', '--no-pretty-print', '--no-prompt', 'true']);
     writeFileSync(resolve(root, '.local/azure-what-if.json'), JSON.stringify(result, null, 2)); console.log('Azure foundation what-if validated; no resources provisioned'); return;
   }
   // No Azure mutation until actual Sepolia and local verification prerequisites exist.
-  run('make', ['check'], { timeout: 300000 });
+  if (!resuming) run('make', ['check'], { timeout: 300000 });
   if (existsSync(resolve(root, '.local/sepolia.env'))) process.loadEnvFile(resolve(root, '.local/sepolia.env'));
   assert.ok(process.env.SEPOLIA_RPC_URL, 'SEPOLIA_RPC_URL is missing');
   const m = loadManifest(resolve(root, 'deployments/sepolia.json')); assert.equal(m.chainId, 11155111);
   const chainSmoke = JSON.parse(readFileSync(resolve(root, 'deployments/sepolia-smoke.json'), 'utf8')); assert.equal(chainSmoke.sourceCommit, m.sourceCommit);
   assert.ok(existsSync(resolve(root, '.local/docker-image-id')), 'Complete make container-smoke before Azure deployment');
-  run('git', ['diff', '--quiet', m.sourceCommit, '--', 'contracts', 'oracle-contracts', 'backend/src', 'backend/package.json', 'backend/package-lock.json']);
+  run('git', ['diff', '--quiet', m.sourceCommit, '--', 'contracts', 'oracle-contracts', 'backend/src', 'backend/Dockerfile', 'backend/tsconfig.json', 'backend/package.json', 'backend/package-lock.json']);
   run('python3', ['scripts/export-assets.py', 'deployments/sepolia.json']);
   run(resolve(root, 'backend/node_modules/.bin/tsx'), ['backend/tools/validate-manifest.ts'], { env: { ...process.env, CHAIN_ID: '11155111' } });
   // This local build/run gate precedes paid provisioning and image upload.
+  if (!resuming) {
   run('docker', ['build', '--network', 'host', '--no-cache', '-f', 'backend/Dockerfile', '-t', `unijar:${m.sourceCommit}`, '.'], { timeout: 600000, env: dockerEnv });
   const envFile = resolve(root, '.local/container.env');
   writeFileSync(envFile, `RPC_URL=${process.env.SEPOLIA_RPC_URL}\nEXPECTED_CHAIN_ID=11155111\n`, { mode: 0o600 }); chmodSync(envFile, 0o600);
@@ -136,10 +138,15 @@ async function main() {
     const localUrl = dockerEnv.DOCKER_HOST?.includes('unijar-docker') ? 'http://127.0.0.1:18080' : 'http://127.0.0.1:8080';
     await waitReady(localUrl); assert.equal(run('docker', ['exec', 'unijar-preflight', 'id', '-u'], { env: dockerEnv }), '1000');
   } finally { try { run('docker', ['stop', 'unijar-preflight'], { env: dockerEnv }); } catch { /* may not have started */ } unlinkSync(envFile); }
+  }
   const parameters = ['--location', location, '--template-file', 'infra/main.bicep', '--parameters', `location=${location}`, `groupName=${groupName}`];
-  const foundation = az(['deployment', 'sub', 'create', '--name', 'unijar-foundation', ...parameters, 'deployApplication=false'], 900000);
+  const foundation = resuming ? az(['deployment', 'sub', 'show', '--name', 'unijar-foundation']) : az(['deployment', 'sub', 'create', '--name', 'unijar-foundation', ...parameters, 'deployApplication=false'], 900000);
+  assert.equal(foundation.properties.provisioningState, 'Succeeded', 'Foundation must finish before resuming');
   const registry = foundation.properties.outputs.registryName.value;
+  const environment = az(['rest', '--method', 'get', '--url', `https://management.azure.com/subscriptions/${subscription}/resourceGroups/${groupName}/providers/Microsoft.App/managedEnvironments/unijar-env?api-version=2026-07-01`]);
+  assert.equal(environment.properties.environmentMode, 'WorkloadProfiles', 'Apply the explicit WorkloadProfiles foundation before deploying the app');
   // Push the exact locally tested image; no registry admin password or ACR build worker.
+  if (!resuming) {
   const login = az(['acr', 'login', '--name', registry, '--expose-token']);
   const authDirectory = mkdtempSync(resolve(root, '.local/acr-auth-')); chmodSync(authDirectory, 0o700);
   const authEnv = { ...dockerEnv, DOCKER_CONFIG: authDirectory };
@@ -149,8 +156,16 @@ async function main() {
     run('docker', ['tag', `unijar:${m.sourceCommit}`, image], { env: authEnv });
     run('docker', ['push', image], { env: authEnv, timeout: 900000 });
   } finally { rmSync(authDirectory, { recursive: true, force: true }); }
+  }
   const digest = az(['acr', 'repository', 'show', '--name', registry, '--image', `unijar:${m.sourceCommit}`]).digest;
   assert.match(digest, /^sha256:[a-f0-9]{64}$/);
+  if (resuming) {
+    const inspected = JSON.parse(run('docker', ['image', 'inspect', `unijar:${m.sourceCommit}`], { env: dockerEnv }));
+    assert.ok(inspected[0].RepoDigests.includes(`${registry}.azurecr.io/unijar@${digest}`), 'The previously tested local image must match the published digest');
+    const packedManifest = JSON.parse(run('docker', ['run', '--rm', '--network', 'host', '--entrypoint', 'node', `unijar:${m.sourceCommit}`, '-e', "console.log(require('node:fs').readFileSync('public/manifest.json','utf8'))"], { env: dockerEnv }));
+    assert.deepEqual(packedManifest, m, 'The previously tested image must contain this exact Sepolia manifest');
+    console.log('Resuming with matching source, chain, tested image digest and packaged manifest');
+  }
   let previous: any;
   if (existsSync(resolve(root, 'deployments/azure.json'))) previous = JSON.parse(readFileSync(resolve(root, 'deployments/azure.json'), 'utf8'));
   const secure = resolve(root, '.local/azure-secure-parameters.json');
