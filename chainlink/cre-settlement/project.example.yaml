@@ -1,0 +1,5 @@
+# Public example only; the simulation helper uses .local/sepolia.env instead.
+simulation:
+  rpcs:
+    - chain-name: ethereum-testnet-sepolia
+      url: https://ethereum-sepolia-rpc.publicnode.com

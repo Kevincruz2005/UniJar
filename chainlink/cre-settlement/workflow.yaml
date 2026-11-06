@@ -1,0 +1,9 @@
+# Official CLI target syntax. scripts/cre-simulate.sh builds an ignored workspace
+# with validated deployment config and the user's private RPC configuration.
+simulation:
+  user-workflow:
+    workflow-name: "unijar-settlement"
+  workflow-artifacts:
+    workflow-path: "./src/main.ts"
+    config-path: "./config.simulation.json"
+    secrets-path: ""
