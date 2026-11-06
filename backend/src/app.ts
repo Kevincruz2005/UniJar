@@ -7,6 +7,7 @@ import { encodeFunctionData, keccak256, zeroAddress, type Address, type Abi, typ
 import { isRevert, type Gateway } from './gateway.js';
 import type { Manifest } from './manifest.js';
 import * as s from './schemas.js';
+import { assetInfo, referenceRefusal, simulationReason } from './chain-data.js';
 
 export type Lot = { mode: number; state: number; asset: Address; quantity: bigint; committedAt: bigint; expiry: bigint; reserve: bigint; increment: bigint; bidder: Address; recipient: Address; highest: bigint; policyHash: Hex; policy: Record<string, unknown> };
 type Params = Record<string, unknown>;
@@ -16,14 +17,16 @@ const uint = (value: unknown, bits = 256): bigint => {
   const parsed = BigInt(String(value)); if (parsed < 0n || parsed >= 1n << BigInt(bits)) throw new HttpError(400, 'INTEGER_OUT_OF_RANGE'); return parsed;
 };
 
-export async function buildApp(options: { manifest: Manifest; gateway: Gateway; abis: { sale: Abi; token: Abi; jar: Abi }; allowedOrigins?: string[]; rateMax?: number; readinessTtl?: number; logger?: boolean }) {
+export async function buildApp(options: { manifest: Manifest; gateway: Gateway; abis: { sale: Abi; token: Abi; jar: Abi }; version?: string; allowedOrigins?: string[]; rateMax?: number; readinessTtl?: number; logger?: boolean }) {
   const { manifest: m, gateway: g, abis } = options;
   const a = m.addresses as Record<keyof Manifest['addresses'], Address>;
+  const assets = [...new Set([a.directAsset, a.auctionAsset, ...m.reviewAssets as Address[], a.payout])];
+  const version = options.version ?? m.sourceCommit;
   const app = Fastify({ logger: options.logger ? { redact: ['req.headers.authorization', 'req.headers.cookie'], serializers: { req: r => ({ method: r.method, path: r.url?.split('?')[0] }) } } : false,
     bodyLimit: 16384, requestTimeout: 10000, ajv: { customOptions: { removeAdditional: false, coerceTypes: false } } });
   await app.register(cors, { origin: options.allowedOrigins ?? [], methods: ['GET', 'POST', 'OPTIONS'], credentials: false });
   await app.register(rateLimit, { max: options.rateMax ?? 120, timeWindow: '1 minute', cache: 10000 });
-  await app.register(swagger, { openapi: { info: { title: 'UniJar noncustodial API', version: m.sourceCommit } } });
+  await app.register(swagger, { openapi: { info: { title: 'UniJar noncustodial API', version } } });
   app.setErrorHandler((error, _request, reply) => {
     const e = error as { validation?: unknown; statusCode?: number };
     const status = e.validation ? 400 : e.statusCode && e.statusCode >= 400 && e.statusCode < 500 ? e.statusCode : 503;
@@ -37,9 +40,9 @@ export async function buildApp(options: { manifest: Manifest; gateway: Gateway; 
     if (!readyCheck) readyCheck = (async () => {
       if (await g.chainId() !== m.chainId) throw new HttpError(503, 'CHAIN_MISMATCH');
       const block = await g.blockNumber();
-      await Promise.all(Object.entries(a).map(async ([name, address]) => {
-        const code = await g.code(address, block);
-        if (!code || code === '0x' || keccak256(code) !== m.deployments[name]?.codeHash) throw new HttpError(503, 'CODE_MISMATCH');
+      await Promise.all(Object.values(m.deployments).map(async deployment => {
+        const code = await g.code(deployment.address as Address, block);
+        if (!code || code === '0x' || keccak256(code) !== deployment.codeHash) throw new HttpError(503, 'CODE_MISMATCH');
       }));
       lastReady = Date.now();
     })().finally(() => { readyCheck = undefined; });
@@ -53,18 +56,26 @@ export async function buildApp(options: { manifest: Manifest; gateway: Gateway; 
     return await sale('getLot', [id], block) as Lot;
   }
   const errors = { 400: s.errorResponse, 404: s.errorResponse, 409: s.errorResponse, 413: s.errorResponse, 429: s.errorResponse, 503: s.errorResponse };
-  app.get('/healthz', { config: { rateLimit: false }, schema: { response: { 200: s.object({ status: { const: 'ok' }, version: { type: 'string' }, chainId: { type: 'integer' } }) } } }, async () => ({ status: 'ok', version: m.sourceCommit, chainId: m.chainId }));
-  app.get('/readyz', { config: { rateLimit: false }, schema: { response: { 200: s.object({ status: { const: 'ready' }, version: { type: 'string' }, chainId: { type: 'integer' } }), 503: s.errorResponse } } }, async () => { await ready(); return { status: 'ready', version: m.sourceCommit, chainId: m.chainId }; });
-  app.get('/v1/config', { schema: { response: { 200: s.envelope(s.object({ manifest: { type: 'object', additionalProperties: true }, adopted: { type: 'boolean' }, currentReleaser: s.address, paused: { type: 'boolean' } })), ...errors } } }, async () => {
-    const block = await context(); const [current, paused] = await Promise.all([read(a.jar, abis.jar, 'releaser', [], block), sale('paused', [], block)]);
-    return clean({ block, data: { manifest: m, currentReleaser: current, adopted: String(current).toLowerCase() === a.releaser.toLowerCase(), paused } });
-  });
-  app.get('/v1/inventory', { schema: { response: { 200: s.envelope({ type: 'array', items: s.object({ asset: s.address, jar: s.decimal, escrow: s.decimal, accounted: s.decimal }) }), ...errors } } }, async () => {
+  app.get('/healthz', { config: { rateLimit: false }, schema: { response: { 200: s.object({ status: { const: 'ok' }, version: { type: 'string' }, chainId: { type: 'integer' } }) } } }, async () => ({ status: 'ok', version, chainId: m.chainId }));
+  app.get('/readyz', { config: { rateLimit: false }, schema: { response: { 200: s.object({ status: { const: 'ready' }, version: { type: 'string' }, chainId: { type: 'integer' } }), 503: s.errorResponse } } }, async () => { await ready(); return { status: 'ready', version, chainId: m.chainId }; });
+  app.get('/v1/config', { schema: { response: { 200: s.envelope(s.object({ manifest: { type: 'object', additionalProperties: true }, version: { type: 'string' }, adopted: { type: 'boolean' }, currentReleaser: s.address, paused: { type: 'boolean' }, roles: s.object({ owner: s.address, operator: s.address, treasury: s.address, payout: s.address, jar: s.address, reader: s.address, factory: s.address }), activeId: s.decimal, nextId: s.decimal, bidLiability: s.decimal, refundLiability: s.decimal, directPayments: s.decimal, assets: { type: 'array', items: s.assetInfo }, capabilities: s.object({ assetApproval: { const: 'exclusive' } }) })), ...errors } } }, async () => {
     const block = await context();
-    const data = await Promise.all([a.directAsset, a.auctionAsset, a.payout].map(async asset => {
+    const [current, paused, owner, roleValues, counters, configuredAssets] = await Promise.all([
+      read(a.jar, abis.jar, 'releaser', [], block), sale('paused', [], block), read(a.jar, abis.jar, 'owner', [], block),
+      Promise.all(['operator', 'treasury', 'payout', 'jar', 'reader', 'factory'].map(method => sale(method, [], block))),
+      Promise.all(['activeId', 'nextId', 'bidLiability', 'totalCredits', 'directPayments'].map(method => sale(method, [], block))),
+      Promise.all(assets.map(asset => assetInfo(g, a.releaser, abis.sale, asset, a.payout, block))),
+    ]);
+    const roles = { owner, ...Object.fromEntries(['operator', 'treasury', 'payout', 'jar', 'reader', 'factory'].map((name, i) => [name, roleValues[i]])) };
+    const [activeId, nextId, bidLiability, refundLiability, directPayments] = counters;
+    return clean({ block, data: { manifest: m, version, currentReleaser: current, adopted: String(current).toLowerCase() === a.releaser.toLowerCase(), paused, roles, activeId, nextId, bidLiability, refundLiability, directPayments, assets: configuredAssets, capabilities: { assetApproval: 'exclusive' } } });
+  });
+  app.get('/v1/inventory', { schema: { response: { 200: s.envelope({ type: 'array', items: s.object({ ...s.assetInfo.properties, jar: s.decimal, escrow: s.decimal, accounted: s.decimal }) }), ...errors } } }, async () => {
+    const block = await context();
+    const data = await Promise.all(assets.map(async asset => {
       const accounting = asset === a.payout ? Promise.all([sale('bidLiability', [], block), sale('totalCredits', [], block)]).then(([bid, credit]) => (bid as bigint) + (credit as bigint)) : sale('inventory', [asset], block);
-      const [jar, escrow, accounted] = await Promise.all([read(asset, abis.token, 'balanceOf', [a.jar], block), read(asset, abis.token, 'balanceOf', [a.releaser], block), accounting]);
-      return { asset, jar, escrow, accounted };
+      const [jar, escrow, accounted, info] = await Promise.all([read(asset, abis.token, 'balanceOf', [a.jar], block), read(asset, abis.token, 'balanceOf', [a.releaser], block), accounting, assetInfo(g, a.releaser, abis.sale, asset, a.payout, block)]);
+      return { ...info, jar, escrow, accounted };
     })); return clean({ block, data });
   });
   app.get<{ Params: { id: string } }>('/v1/lots/:id', { schema: { params: s.object({ id: s.positive }), response: { 200: s.envelope(s.object({ lot: s.lot, nextActions: s.stringArray })), ...errors } } }, async request => {
@@ -84,24 +95,45 @@ export async function buildApp(options: { manifest: Manifest; gateway: Gateway; 
     } else if ([3, 4].includes(lot.state)) nextActions.push('recover');
     return clean({ block, data: { lot, nextActions } });
   });
-  app.get<{ Params: { address: string } }>('/v1/credits/:address', { schema: { params: s.object({ address: s.address }), response: { 200: s.envelope(s.object({ credit: s.decimal })), ...errors } } }, async request => {
-    const block = await context(); return clean({ block, data: { credit: await sale('credits', [request.params.address], block) } });
+  app.get<{ Params: { address: string } }>('/v1/credits/:address', { schema: { params: s.object({ address: s.address }), response: { 200: s.envelope(s.object({ credit: s.decimal, payoutBalance: s.decimal, allowance: s.decimal, payout: s.address, spender: s.address })), ...errors } } }, async request => {
+    const block = await context(); const account = request.params.address;
+    const [credit, payoutBalance, allowance] = await Promise.all([sale('credits', [account], block), read(a.payout, abis.token, 'balanceOf', [account], block), read(a.payout, abis.token, 'allowance', [account, a.releaser], block)]);
+    return clean({ block, data: { credit, payoutBalance, allowance, payout: a.payout, spender: a.releaser } });
   });
-  app.get<{ Params: { id: string } }>('/v1/lots/:id/quote', { schema: { params: s.object({ id: s.positive }), response: { 200: s.envelope(s.object({ eligible: { type: 'boolean' }, reason: { type: 'string' }, policyHash: s.hash, payment: { anyOf: [s.decimal, { type: 'null' }] } })), ...errors } } }, async request => {
+  app.get<{ Params: { id: string } }>('/v1/lots/:id/quote', { schema: { params: s.object({ id: s.positive }), response: { 200: s.envelope(s.object({ eligible: { type: 'boolean' }, reason: { type: 'string' }, policyHash: s.hash, payment: { anyOf: [s.decimal, { type: 'null' }] }, reference: s.reference })), ...errors } } }, async request => {
     const block = await context(); const id = uint(request.params.id); const lot = await getLot(id, block);
-    const result = (eligible: boolean, reason: string, payment: unknown = null) => clean({ block, data: { eligible, reason, policyHash: lot.policyHash, payment } });
+    const result = (eligible: boolean, reason: string, payment: unknown = null, reference: unknown = null) => clean({ block, data: { eligible, reason, policyHash: lot.policyHash, payment, reference } });
     if (lot.mode !== 2) return result(false, 'WRONG_MODE');
     if (lot.state !== 1 || await g.timestamp(block) >= lot.expiry) return result(false, 'LOT_CLOSED');
     if (await sale('paused', [], block)) return result(false, 'ADMISSION_PAUSED');
     try { const [payment] = await sale('quoteDirect', [id], block) as [bigint, Hex]; return result(true, 'OK', payment); }
-    catch (error) { if (isRevert(error)) return result(false, 'REFERENCE_REFUSED'); throw error; }
+    catch (error) {
+      if (!isRevert(error)) throw error;
+      const refused = await referenceRefusal(g, a.reader, a.factory, a.payout, lot, block, error);
+      return result(false, refused.reason, null, refused.reference);
+    }
   });
   app.post<{ Body: { action: keyof typeof s.actionParams; sender: Address; params: Params } }>('/v1/transactions/prepare', { schema: { body: s.prepareBody, response: { 200: s.object({ chainId: { type: 'integer' }, from: s.address, to: s.address, data: { type: 'string', pattern: '^0x[0-9a-fA-F]+$' }, value: s.decimal, simulationBlock: s.decimal, expectedPolicyHash: { anyOf: [s.hash, { type: 'null' }] }, limits: { type: 'object', additionalProperties: true } }), ...errors } } }, async request => {
     const block = await context(); const { action, sender, params: p } = request.body;
     if ([zeroAddress, a.jar, a.releaser].some(x => x.toLowerCase() === sender.toLowerCase())) throw new HttpError(400, 'INVALID_SENDER');
     let target = a.releaser; let abi = abis.sale; let method: string = action; let args: unknown[] = []; let expectedPolicyHash: Hex | null = null;
     const id = p.id === undefined ? undefined : uint(p.id);
-    if (id !== undefined) expectedPolicyHash = (await getLot(id, block)).policyHash;
+    const preparedLot = id === undefined ? undefined : await getLot(id, block);
+    if (preparedLot) expectedPolicyHash = preparedLot.policyHash;
+    if (action === 'fillDirect') {
+      if (String(p.expectedPolicyHash).toLowerCase() !== expectedPolicyHash?.toLowerCase()) throw new HttpError(409, 'POLICY_MISMATCH');
+      if (uint(p.deadline, 64) < await g.timestamp(block)) throw new HttpError(409, 'DEADLINE_EXPIRED');
+      if (sender.toLowerCase() === String(await sale('treasury', [], block)).toLowerCase()) throw new HttpError(409, 'TREASURY_SELF_PAYMENT');
+      try {
+        const [payment] = await sale('quoteDirect', [id], block) as [bigint, Hex];
+        if (payment > uint(p.maximum)) throw new HttpError(409, 'MAXIMUM_EXCEEDED');
+      } catch (error) {
+        if (!isRevert(error)) throw error;
+        if (preparedLot!.mode !== 2 || preparedLot!.state !== 1 || await g.timestamp(block) >= preparedLot!.expiry) throw new HttpError(409, 'WRONG_STATE');
+        const refused = await referenceRefusal(g, a.reader, a.factory, a.payout, preparedLot!, block, error);
+        throw new HttpError(409, refused.reason);
+      }
+    }
     switch (action) {
       case 'approvePayout': {
         const lot = await getLot(id!, block); const amount = uint(p.amount);
@@ -124,9 +156,9 @@ export async function buildApp(options: { manifest: Manifest; gateway: Gateway; 
       case 'withdrawRefund': break;
       default: args = [id];
     }
-    if ('asset' in p && ![a.directAsset, a.auctionAsset].some(x => x.toLowerCase() === String(p.asset).toLowerCase())) throw new HttpError(400, 'UNCONFIGURED_ASSET');
+    if ('asset' in p && !assets.filter(asset => asset !== a.payout).some(x => x.toLowerCase() === String(p.asset).toLowerCase())) throw new HttpError(400, 'UNCONFIGURED_ASSET');
     try { await g.simulate(target, abi, method, args, sender, block); }
-    catch (error) { if (isRevert(error)) throw new HttpError(409, 'SIMULATION_REVERTED'); throw error; }
+    catch (error) { if (isRevert(error)) throw new HttpError(409, simulationReason(error)); throw error; }
     return clean({ chainId: m.chainId, from: sender, to: target, data: encodeFunctionData({ abi, functionName: method, args }), value: 0n, simulationBlock: block, expectedPolicyHash, limits: p });
   });
   app.get('/openapi.json', { schema: { hide: true } }, async () => app.swagger());

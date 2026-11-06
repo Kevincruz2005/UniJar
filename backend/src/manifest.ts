@@ -13,6 +13,7 @@ export const manifestSchema = z.object({
   controlledFixture: z.literal(true),
   toolchain: z.record(z.string(), z.string()),
   addresses: z.object({ jar: address, releaser: address, payout: address, directAsset: address, auctionAsset: address, factory: address, pool: address, reader: address, fixture: address }),
+  reviewAssets: z.array(address).default([]),
   roles: z.object({ operator: address, treasury: address, buyerA: address, buyerB: address }),
   deployments: z.record(z.string(), record),
   transactions: z.record(z.string(), hash),
@@ -24,7 +25,11 @@ export function loadManifest(path: string): Manifest {
   for (const [name, value] of Object.entries(manifest.addresses)) {
     if (manifest.deployments[name]?.address.toLowerCase() !== value.toLowerCase()) throw new Error('Manifest deployment mismatch');
   }
-  if (new Set(Object.values(manifest.addresses).map(x => x.toLowerCase())).size !== 9) throw new Error('Manifest addresses must be distinct');
+  const configured = [...Object.values(manifest.addresses), ...manifest.reviewAssets];
+  if (new Set(configured.map(x => x.toLowerCase())).size !== configured.length) throw new Error('Manifest addresses must be distinct');
+  for (const asset of manifest.reviewAssets) {
+    if (!Object.values(manifest.deployments).some(d => d.address.toLowerCase() === asset.toLowerCase())) throw new Error('Review asset needs a deployment record');
+  }
   return manifest;
 }
 export function loadAbis(directory: string): { sale: Abi; token: Abi; jar: Abi } {

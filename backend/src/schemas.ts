@@ -28,3 +28,5 @@ export const lot = object({ mode: integer(2), state: integer(5), asset: address,
 (lot.properties.policy as ReturnType<typeof object>).properties.maxQuantity = decimal;
 (lot.properties.policy as ReturnType<typeof object>).properties.version = decimal;
 export const stringArray = { type: 'array', items: { type: 'string' } };
+export const assetInfo = object({ asset: address, name: { type: 'string' }, symbol: { type: 'string' }, decimals: integer(255), mode: integer(2), classification: { enum: ['Payout', 'HeldForReview', 'AuctionApproved', 'DirectApproved'] }, allowedModes: stringArray, policy: lot.properties.policy });
+export const reference = { anyOf: [{ type: 'null' }, object({ referenceQuote: decimal, averageTick: { type: 'integer' }, spotTick: { type: 'integer' }, harmonicLiquidity: decimal, latestObservation: integer(4294967295), observationAge: decimal })] };
