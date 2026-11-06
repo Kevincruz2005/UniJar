@@ -19,7 +19,8 @@
     "factory": "0xf30240de5773de68819f60de163b758c834db18d",
     "pool": "0x791a228182FC3f0aB61a07b4A7FE0a1504C41cBf",
     "reader": "0x2ea06589b162d9ca07bdf6342983bcfb6afd8e34",
-    "fixture": "0x87298fa3c41ff04d93db498c91cf9d15fe727bff"
+    "fixture": "0x87298fa3c41ff04d93db498c91cf9d15fe727bff",
+    "feeSource": "0xa3854b05c6bc2384c15917914cd1afc1ecf248b9"
   },
   "reviewAssets": [
     "0x2c7b6527e003d81a794d85e786fae2e58e103685"
@@ -90,6 +91,12 @@
       "block": "12073735",
       "transactionHash": "0x652e6b105db57efc513104f3f46e0bafcfe87ce43071bbb0cd0922763b03c8e4",
       "codeHash": "0xfec8e14eb38ba6f3581e2bb793470172b15a3ad16f86b66c53fa66223c110814"
+    },
+    "feeSource": {
+      "address": "0xa3854b05c6bc2384c15917914cd1afc1ecf248b9",
+      "block": "12076127",
+      "transactionHash": "0xd25a1f25ae2d8814a0a9810488d47cbe6bb2404fa88650a2b93101cd2d7b9751",
+      "codeHash": "0x4349e749809dce09121b143380d145c6f7f0c5cac997d9cd66cb1788c6fb9e6c"
     }
   },
   "transactions": {
@@ -132,5 +139,12 @@
     "discountBps": 100,
     "maxDuration": 7200,
     "version": "1"
+  },
+  "feeSource": {
+    "sourceCommit": "77536408f49d96bdcf5238aba83becd97332f5b4",
+    "asset": "0x056aabd49eae7b678cc89427dce84e5fff199f01",
+    "merchant": "0x57FDd22D840e61A4f93238b28351420B97056A90",
+    "price": "10000000000000000000",
+    "feeBps": 1000
   }
 }
