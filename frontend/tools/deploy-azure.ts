@@ -61,7 +61,7 @@ assert.ok(url.startsWith('https://unijar-web.'));
 // Add only the actual frontend origin; preserve any previously authorized origins.
 const oldOrigins = existing.properties.template.containers[0].env.find((v: any) => v.name === 'CORS_ORIGINS')?.value ?? '';
 const corsOrigins = [...new Set([...oldOrigins.split(',').filter(Boolean), url])].join(',');
-az(['containerapp', 'update', '--name', 'unijar-api', '--resource-group', resourceGroup, '--set-env-vars', `CORS_ORIGINS=${corsOrigins}`], 600000);
+if (corsOrigins !== oldOrigins) az(['containerapp', 'update', '--name', 'unijar-api', '--resource-group', resourceGroup, '--set-env-vars', `CORS_ORIGINS=${corsOrigins}`], 600000);
 let verified = false;
 for (let i = 0; i < 50; i++) {
   try {
