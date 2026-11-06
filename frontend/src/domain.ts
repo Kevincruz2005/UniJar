@@ -121,6 +121,8 @@ const reasons: Record<string, string> = {
   EXCESSIVE_DEVIATION: 'The current price has moved too far from the time-weighted reference.',
   ADMISSION_PAUSED: 'New purchases and bids are paused. Existing refunds and permitted exits remain available.',
   LOT_CLOSED: 'This lot is closed or has expired.', WRONG_STATE: 'This action is no longer available. Refresh the lot.',
+  FEE_SOURCE_NOT_CONFIGURED: 'This deployment has no verified fee service. No payment can be prepared.',
+  FEE_SOURCE_MISMATCH: 'Fee service terms differ from the verified deployment. Payments are disabled.',
   CODE_MISMATCH: 'Deployed contract code does not match the verified deployment. Transactions are disabled.',
   CHAIN_MISMATCH: 'The API reached an unexpected network. Transactions are disabled.',
   RPC_UNAVAILABLE: 'Chain data is temporarily unavailable. Try again shortly.', RATE_LIMITED: 'Too many requests. Please wait a minute before refreshing.',

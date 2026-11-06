@@ -254,7 +254,10 @@ reads in groups of at most 20 and retries transient failures once, with an
 per half-second by default (eight calls/second); production
 `RPC_REQUESTS_PER_SECOND` accepts an explicit rate from 1 to 20. Up to 128
 waiting calls are retained; overload fails honestly rather than growing an
-unbounded queue. Failure logs contain only a category, route
+unbounded queue. Identical reads share only a pending request; completed
+results are never reused as a cache. Confirmed wallet receipts are displayed
+before background refresh finishes, while additional writes remain locked.
+Failure logs contain only a category, route
 template and request ID; provider URLs, RPC messages and request bodies are
 excluded. The browser applies a 25-second deadline even when a query supplies
 its own cancellation signal. An HTTP 429 was observed from the configured provider during a burst of Sepolia
