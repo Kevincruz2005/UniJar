@@ -311,3 +311,20 @@ records both deployed versions, local gates, all 23 public transaction receipts
 and the explicit public skip. The Fees and Status pages were also inspected at
 320px, 390px and 1440px without horizontal document overflow. Real wallet
 extensions and physical mobile devices remain manual acceptance items.
+
+
+## User-reported MetaMask payment follow-up
+
+The user supplied payment transaction
+`0xd9820e1098b70727fe16ef5f8c7f2131fb55aa97539c427dc55f025621c6841b`
+after the manual MetaMask instructions. Two Sepolia confirmations, the actual
+sender, deployed registry/code hash, calldata and `ReceiptPaid` event were
+independently verified. It created receipt #2 at block 12076526.
+
+Historical balances confirm the 10 mALT payer debit, 1 mALT jar increase and
+9 mALT merchant increase. The allowance before payment was exactly 10 mALT;
+afterward it was zero. This is a user-reported real MetaMask flow, not a claim
+that an automated tool observed the extension UI. Evidence is in
+[manual-metamask-validation.json](../deployments/manual-metamask-validation.json).
+Rabby, physical mobile devices and manual purchase/auction journeys remain
+untested; the automated browser sale/refund/recovery evidence remains separate.

@@ -271,3 +271,7 @@ The [independent fee-flow proof](deployments/fee-source-validation.json) records
 actual Sepolia receipt/payment events and historical balance deltas through
 TokenJar, auction lot #26 and treasury settlement. Manual extension/device
 checks remain separate from the automated wallet adapter.
+
+A user-reported MetaMask receipt payment was also independently verified,
+including the exact allowance and payer/jar/merchant balance changes; see
+[the manual payment record](deployments/manual-metamask-validation.json).

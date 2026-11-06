@@ -187,8 +187,16 @@
     "horizontalOverflow": false
   },
   "manualAcceptance": {
-    "realWalletExtensions": "Pending: no browser sessions exposed by computer-use inventory.",
-    "physicalMobileDevices": "Pending"
+    "MetaMask": {
+      "status": "passed",
+      "flow": "Exact-price approval and paid reference receipt; user-reported MetaMask use, transaction and historical balances independently verified.",
+      "transactionHash": "0xd9820e1098b70727fe16ef5f8c7f2131fb55aa97539c427dc55f025621c6841b",
+      "receiptId": "2",
+      "evidence": "deployments/manual-metamask-validation.json"
+    },
+    "Rabby": "Not tested",
+    "manualPurchaseAndAuctionFlows": "Not tested with real extensions; automated EIP-1193 adapter flows passed.",
+    "physicalMobileDevices": "Not tested"
   },
   "scope": "Controlled testnet tokens and disposable signing wallets. No production revenue, market demand, mainnet deployment or security audit claimed.",
   "azureVisualInspection": {

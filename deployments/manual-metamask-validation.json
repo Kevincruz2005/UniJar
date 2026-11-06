@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "wallet": "MetaMask, user-reported manual flow; transaction independently verified",
+  "chainId": 11155111,
+  "verifiedAt": "2026-11-06T12:21:36.161Z",
+  "hash": "0xd9820e1098b70727fe16ef5f8c7f2131fb55aa97539c427dc55f025621c6841b",
+  "block": "12076526",
+  "confirmations": 2,
+  "from": "0x995d174c8b0c4f70817eaa59adb8a3e20faf659c",
+  "to": "0xa3854b05c6bc2384c15917914cd1afc1ecf248b9",
+  "id": "2",
+  "payer": "0x995D174C8b0c4F70817EaA59aDb8A3e20fAF659c",
+  "referenceHash": "0x25175ff673e49c59658001be8badcfbe630da8f06508b493548903bcfa48d3cd",
+  "price": "10000000000000000000",
+  "jarFee": "1000000000000000000",
+  "merchantPayment": "9000000000000000000",
+  "scope": "Exact-price ERC20 approval and paid receipt registration through the user’s real wallet. Rabby, physical mobile devices and manual purchase/auction flows remain unverified.",
+  "observed": {
+    "payerBefore": "10000000000000000000",
+    "payerAfter": "0",
+    "jarBefore": "92000000000000000000",
+    "jarAfter": "93000000000000000000",
+    "merchantBefore": "9000000000000000000",
+    "merchantAfter": "18000000000000000000",
+    "allowanceBefore": "10000000000000000000",
+    "allowanceAfter": "0"
+  }
+}
