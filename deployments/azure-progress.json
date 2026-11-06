@@ -1,12 +1,12 @@
 {
-  "status": "complete",
-  "timestamp": "2026-11-06T02:16:50.275Z",
-  "sourceCommit": "62ab1501d04a1febfc51042951c9480f9bfd786f",
+  "status": "deployed-validation-in-progress",
+  "timestamp": "2026-11-06T03:15:41.233057+00:00",
+  "sourceCommit": "eafc5c6827b43de64062406b4a00eff17cb6c6bc",
   "resourceGroup": "unijar-demo-rg",
   "location": "centralindia",
   "url": "https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io",
-  "imageDigest": "sha256:7aafbcb538f434464230d01dd1a4a913a833281f4e230619158110439a5456d0",
-  "revision": "unijar-api--r-62ab1501-7aafbcb5",
+  "imageDigest": "sha256:825739326ca9f331e06fb6b4777b7495d5be27b6a8b141d6d087bf368743d545",
+  "revision": "unijar-api--r-eafc5c68-82573932",
   "environment": {
     "profile": "Consumption",
     "state": "Succeeded"
@@ -15,6 +15,6 @@
   "deployment": "deployments/azure.json",
   "azureSmoke": "deployments/azure-smoke.json",
   "verificationCommand": "make verify-azure",
-  "verificationExitCode": 0,
-  "note": "Local application and container validation preceded Azure resume. Fourteen HTTPS-prepared Sepolia transactions passed; the verifier reconfirmed receipts without replay and checked complete replica replacement, persisted inventory and platform limits. Earlier pause snapshots remain in Git history."
+  "verificationExitCode": null,
+  "note": "New API version is deployed and ready. Expanded HTTPS transaction and platform validation is still running; no completed validation is claimed for this revision yet."
 }
