@@ -11,5 +11,7 @@
 !frontend/public/**
 !frontend/server.mjs
 !frontend/Dockerfile
+!frontend/dist/
+!frontend/dist/**
 !deployments/
 !deployments/sepolia.json

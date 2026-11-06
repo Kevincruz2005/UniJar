@@ -22,10 +22,11 @@ const registry = existing.properties.configuration.registries[0].server.split('.
 const dockerEnv = { ...process.env, DOCKER_HOST: process.env.DOCKER_HOST ?? (existsSync('/run/user/1000/unijar-docker.sock') ? 'unix:///run/user/1000/unijar-docker.sock' : undefined) };
 const tag = `${registry}.azurecr.io/unijar-web:${version}`;
 console.log('Building the tested Sepolia frontend container.');
+run('npm', ['--prefix', 'frontend', 'run', 'build'], { env: { ...process.env, VITE_API_URL: api.url }, timeout: 180000 });
 const context = mkdtempSync(resolve(root, '.local/frontend-context-'));
 try {
   mkdirSync(resolve(context, 'frontend')); mkdirSync(resolve(context, 'deployments'));
-  for (const name of ['package.json', 'package-lock.json', 'tsconfig.json', 'vite.config.ts', 'index.html', 'src', 'public', 'server.mjs', 'Dockerfile']) cpSync(resolve(root, 'frontend', name), resolve(context, 'frontend', name), { recursive: true });
+  for (const name of ['dist', 'server.mjs', 'Dockerfile']) cpSync(resolve(root, 'frontend', name), resolve(context, 'frontend', name), { recursive: true });
   cpSync(resolve(root, 'frontend/Dockerfile.dockerignore'), resolve(context, '.dockerignore'));
   cpSync(resolve(root, 'deployments/sepolia.json'), resolve(context, 'deployments/sepolia.json'));
   run('docker', ['build', '--network', 'host', '-f', resolve(context, 'frontend/Dockerfile'), '--build-arg', `API_URL=${api.url}`, '--build-arg', `SOURCE_COMMIT=${version}`, '-t', tag, context], { env: dockerEnv, timeout: 900000 });
