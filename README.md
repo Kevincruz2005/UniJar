@@ -263,3 +263,11 @@ excluded. The browser applies a 25-second deadline even when a query supplies
 its own cancellation signal. An HTTP 429 was observed from the configured provider during a burst of Sepolia
 reads. The past Azure 503s lack detailed historical diagnostics, so that
 observation does not establish the cause of every earlier failure.
+
+
+The deployed receipt flow and service checks are documented in
+[the current verification record](deployments/frontend-service-validation.json).
+The [independent fee-flow proof](deployments/fee-source-validation.json) records
+actual Sepolia receipt/payment events and historical balance deltas through
+TokenJar, auction lot #26 and treasury settlement. Manual extension/device
+checks remain separate from the automated wallet adapter.

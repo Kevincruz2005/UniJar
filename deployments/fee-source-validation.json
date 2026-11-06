@@ -1,0 +1,61 @@
+{
+  "status": "passed",
+  "chainId": 11155111,
+  "verifiedAt": "2026-11-06T12:15:46.006Z",
+  "webSourceCommit": "e95a8bbb520d74ab16570df3f1f40673aa802fc5",
+  "apiSourceCommit": "d82d9cc7cb83563c5c1887ed3591818056d246da",
+  "url": "https://unijar-web.purplewater-5aec7560.centralindia.azurecontainerapps.io",
+  "feeSource": {
+    "address": "0xa3854b05c6bc2384c15917914cd1afc1ecf248b9",
+    "sourceCommit": "77536408f49d96bdcf5238aba83becd97332f5b4",
+    "asset": "0x056aabd49eae7b678cc89427dce84e5fff199f01",
+    "merchant": "0x57FDd22D840e61A4f93238b28351420B97056A90",
+    "price": "10000000000000000000",
+    "feeBps": 1000
+  },
+  "receipt": {
+    "hash": "0x61d4b2977698337d501c0c306838acc936ed9f55e30ee09b53afaa8bc0648cce",
+    "block": "12076476",
+    "id": "1",
+    "payer": "0x44b45a7a068ffAF4504c540e3939a3819f1912c4",
+    "referenceHash": "0xbeb90a6074bd4eb9da6fbe7b0bb748e08363ed9abc4fdf0c3f58d6b42975a916",
+    "price": "10000000000000000000",
+    "jarFee": "1000000000000000000",
+    "merchantPayment": "9000000000000000000"
+  },
+  "lot": {
+    "id": "26",
+    "openedHash": "0xa31b8cd0e063f4c2cde32e28cc37a97cb2e710560c2ee76d933ab5da84a8f064",
+    "settledHash": "0x6a7a06bd5fe2de6abfb7336ada69bd6a3cb6edda27c79da5afc18f89f6e248ec",
+    "buyer": "0x900302dCC55CBa806B6AAA4175698a2F1195d018",
+    "policyHash": "0xb420d07d89854fa1493e6e282707ee7da27ba9ef8d89f2c50ab917245378dd20",
+    "recipient": "0x900302dCC55CBa806B6AAA4175698a2F1195d018",
+    "payment": "1000000",
+    "delivered": "1000000000000000000"
+  },
+  "observed": {
+    "payerBefore": "10000000000000000000",
+    "payerAfter": "0",
+    "jarBefore": "92000000000000000000",
+    "jarAfterCollection": "93000000000000000000",
+    "merchantBefore": "0",
+    "merchantAfter": "9000000000000000000",
+    "jarAfterOpening": "92000000000000000000",
+    "jarAfterSettlement": "92000000000000000000",
+    "buyerBeforeSettlement": "8000000000000000000",
+    "buyerAfterSettlement": "9000000000000000000",
+    "treasuryBeforeSettlement": "17319224",
+    "treasuryAfterSettlement": "18319224",
+    "serviceBalance": "0"
+  },
+  "assertions": [
+    "successful real Sepolia receipts",
+    "exact payer debit and merchant/jar split",
+    "collected fee quantity committed to the original releaser",
+    "original jar balance preserved after fee sale",
+    "buyer receives the exact collected fee quantity",
+    "funded payout reaches treasury",
+    "receipt service holds zero tokens"
+  ],
+  "scope": "Controlled test-token payments and disposable wallets; no production revenue or real browser-extension validation claimed."
+}

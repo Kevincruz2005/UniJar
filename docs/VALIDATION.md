@@ -283,3 +283,31 @@ Historical Azure 503s lack enough diagnostics to attribute every failure to
 that cause. The new log categories preserve provider-credential privacy.
 Real MetaMask/Rabby extensions and physical devices remain manual acceptance
 items; the automated signing adapter is not represented as an extension test.
+
+
+## Deployed browser and receipt-to-treasury proof
+
+Frontend source `e95a8bbb520d74ab16570df3f1f40673aa802fc5` is deployed at the
+[Azure application](https://unijar-web.purplewater-5aec7560.centralindia.azurecontainerapps.io).
+The source comparison in the verification record confirms that its runtime,
+build configuration and deployment pins match the local `d82d9cc` gate.
+All eight public-page browser checks passed on Azure. Five Sepolia wallet
+scenarios passed with 23 successful transactions, including controlled fixture
+maintenance and fee-token funding. The sixth scenario deliberately restricts
+staleness time travel to Anvil, where it passed; no public time travel is claimed.
+
+Receipt #1 charged 10 mALT: 1 mALT went to the original TokenJar and 9 mALT to
+the merchant. Auction lot #26 committed that exact collected quantity and
+settled for 1 mUSDC. Historical, block-pinned reads independently confirmed the
+payer debit, merchant/jar split, unchanged original jar inventory after the
+sale, buyer delivery, treasury payout and zero fee-asset custody at the service.
+These are actual controlled Sepolia transfers, not production revenue or
+market-demand evidence.
+
+[Fee-flow evidence](../deployments/fee-source-validation.json) contains receipt,
+opening/settlement hashes and before/after balances.
+[Current browser/service verification](../deployments/frontend-service-validation.json)
+records both deployed versions, local gates, all 23 public transaction receipts
+and the explicit public skip. The Fees and Status pages were also inspected at
+320px, 390px and 1440px without horizontal document overflow. Real wallet
+extensions and physical mobile devices remain manual acceptance items.

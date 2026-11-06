@@ -1,0 +1,208 @@
+{
+  "status": "automated checks passed",
+  "checkedAt": "2026-11-06T12:15:48.640Z",
+  "chainId": 11155111,
+  "frontend": {
+    "url": "https://unijar-web.purplewater-5aec7560.centralindia.azurecontainerapps.io",
+    "api": "https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io",
+    "resourceGroup": "unijar-demo-rg",
+    "sourceCommit": "e95a8bbb520d74ab16570df3f1f40673aa802fc5",
+    "image": "unijarc2ed52as6vxy6.azurecr.io/unijar-web@sha256:24463a2af2e9da227f315ff9063c07ce2ee31447c617ea89c528a6ff5b7b8a79",
+    "imageDigest": "sha256:24463a2af2e9da227f315ff9063c07ce2ee31447c617ea89c528a6ff5b7b8a79",
+    "revision": "unijar-web--w-e95a8bbb-24463a2a",
+    "deployedAt": "2026-11-06T11:51:49.026Z",
+    "chainId": 11155111,
+    "localValidation": "d82d9cc7cb83563c5c1887ed3591818056d246da"
+  },
+  "api": {
+    "url": "https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io",
+    "sourceCommit": "d82d9cc7cb83563c5c1887ed3591818056d246da",
+    "imageDigest": "sha256:2dc4d21e84c81750d2855bc7931aaef90d1db9f27641c6561c966f3eb1211602",
+    "revision": "unijar-api--restore-1793965671562"
+  },
+  "localFrontend": {
+    "status": "passed",
+    "sourceCommit": "d82d9cc7cb83563c5c1887ed3591818056d246da",
+    "testedAt": "2026-11-06T11:31:43.716Z",
+    "typecheck": "passed",
+    "unitAndServerTests": "passed",
+    "productionBuild": "passed",
+    "publicProductionBrowserTests": 8,
+    "localWalletBrowserScenarios": 6,
+    "localWalletTransactions": 27,
+    "chainId": 31337,
+    "wallet": "Injected EIP-1193 test provider with encrypted signing outside the browser; real wallet extensions remain a manual check."
+  },
+  "localBackend": {
+    "sourceCommit": "a8a4caf2d33a1d19598b7a7bba8fb0c605971e65",
+    "verificationSourceCommit": "5549ea58999260380c5798e1f065e8945aa4a315",
+    "imageId": "sha256:8c76170b1926a60661c249f40b92cca06ffe15f6a36fa3c21b4063f897d1c139",
+    "chainId": 31337,
+    "status": "passed",
+    "timestamp": "2026-11-06T11:24:41.533586+00:00",
+    "contractTests": 34,
+    "apiTransportQueueTests": 17,
+    "nativeApiTransactions": 16,
+    "containerApiTransactions": 16
+  },
+  "frontendUnitAndServerTests": 12,
+  "azurePublicBrowserTests": 8,
+  "azureWalletScenarios": 5,
+  "skippedPublicScenarios": [
+    {
+      "scenario": "Stale direct-reference time travel",
+      "reason": "Explicitly restricted to Anvil; passed in the six-scenario local suite."
+    }
+  ],
+  "confirmedSepoliaTransactions": [
+    {
+      "hash": "0x7a2a4f599c5f4d5e9cb81d40613521c77e39f08d1edf77106254921fb300777b",
+      "block": "12076427",
+      "status": "success"
+    },
+    {
+      "hash": "0xdac8939c450fb9e57654eeb708ee77460710570fb555abada719aca48aaff0b5",
+      "block": "12076431",
+      "status": "success"
+    },
+    {
+      "hash": "0xf7d6169fb5e45af0c3abac369af08356aa91a4742414824c0923c5f4b56528c3",
+      "block": "12076434",
+      "status": "success"
+    },
+    {
+      "hash": "0x1676fb8eeb666eaafaae3499b43f459db0252f15339179b3226d60e40d1cd3b7",
+      "block": "12076436",
+      "status": "success"
+    },
+    {
+      "hash": "0x277baf4e1754cb9a1f0296b4a4d40e89f235c04b91d5a57931660e8f1473652c",
+      "block": "12076439",
+      "status": "success"
+    },
+    {
+      "hash": "0x7408f7d98820d670ab901c14cefff36e62c7d336b2c0473cfef607619e841c21",
+      "block": "12076441",
+      "status": "success"
+    },
+    {
+      "hash": "0x11cb803a890a26145ae27e9f2f16cdbeb2362b03579f76020c4945b012bde660",
+      "block": "12076443",
+      "status": "success"
+    },
+    {
+      "hash": "0x4115ee7c2b9cee2bcef5d7289e1d3803d85888215378073c845395bcfdfb0a80",
+      "block": "12076446",
+      "status": "success"
+    },
+    {
+      "hash": "0x7b0d3d977fe7b3201f648e85e84643156c35112b1cfb5bde27e13620e3dba03e",
+      "block": "12076447",
+      "status": "success"
+    },
+    {
+      "hash": "0xdf609511b293216a1e0ff9b766187a3c365b658027edad8d213483183bbdab5f",
+      "block": "12076449",
+      "status": "success"
+    },
+    {
+      "hash": "0x79b61304829aea93019df22f980547def902a83a22f1df04cc281a1619b0a32a",
+      "block": "12076450",
+      "status": "success"
+    },
+    {
+      "hash": "0xfb1c38a6e9814f497c00bcbf6f8beeac355f334c4edf3661b6735402e92717e3",
+      "block": "12076452",
+      "status": "success"
+    },
+    {
+      "hash": "0x0178068bcfa68108cb5f192869abed6a80e30fbb9b5d961a9ee69702127cbdc3",
+      "block": "12076456",
+      "status": "success"
+    },
+    {
+      "hash": "0xf37fd71fd6b5dd38d94e556d587363ccce834983b3bdc48a6bdc62f65a66e169",
+      "block": "12076459",
+      "status": "success"
+    },
+    {
+      "hash": "0xbbde9eecc94dfb395cfd2b5223026a9b8c335be68057de8c2b2377af74b6acbb",
+      "block": "12076467",
+      "status": "success"
+    },
+    {
+      "hash": "0x7da512160a255ca44ab49a45ff3cf017e3e8c07343f330dd55edc8a6ff390821",
+      "block": "12076469",
+      "status": "success"
+    },
+    {
+      "hash": "0x67ec51ef06484024d13af9934a9bf1e8da473ae6b23e128ce147a9269d2d3e3b",
+      "block": "12076470",
+      "status": "success"
+    },
+    {
+      "hash": "0x16b9b9c6b4357bfbb7bbb64a73047b88aa45b764dafdda86fe7c4181b66db781",
+      "block": "12076473",
+      "status": "success"
+    },
+    {
+      "hash": "0x61d4b2977698337d501c0c306838acc936ed9f55e30ee09b53afaa8bc0648cce",
+      "block": "12076476",
+      "status": "success"
+    },
+    {
+      "hash": "0xa31b8cd0e063f4c2cde32e28cc37a97cb2e710560c2ee76d933ab5da84a8f064",
+      "block": "12076479",
+      "status": "success"
+    },
+    {
+      "hash": "0xe93b31bb7c90c6dac0b21f4b9df52bf57150843e4747dbdbf80c5cf0ebc74d34",
+      "block": "12076481",
+      "status": "success"
+    },
+    {
+      "hash": "0xf8751eadd421ff44f21152782dbb89073ef87942a2add37af1a3a6d80c254801",
+      "block": "12076482",
+      "status": "success"
+    },
+    {
+      "hash": "0x6a7a06bd5fe2de6abfb7336ada69bd6a3cb6edda27c79da5afc18f89f6e248ec",
+      "block": "12076495",
+      "status": "success"
+    }
+  ],
+  "transactionCountScope": "Includes controlled fixture maintenance and fee-token funding, as well as browser wallet transactions.",
+  "feeFlowEvidence": "deployments/fee-source-validation.json",
+  "localVisualInspection": {
+    "sourceCommit": "d82d9cc7cb83563c5c1887ed3591818056d246da",
+    "paths": [
+      "/fees",
+      "/status"
+    ],
+    "widths": [
+      320,
+      390,
+      1440
+    ],
+    "horizontalOverflow": false
+  },
+  "manualAcceptance": {
+    "realWalletExtensions": "Pending: no browser sessions exposed by computer-use inventory.",
+    "physicalMobileDevices": "Pending"
+  },
+  "scope": "Controlled testnet tokens and disposable signing wallets. No production revenue, market demand, mainnet deployment or security audit claimed.",
+  "azureVisualInspection": {
+    "sourceCommit": "e95a8bbb520d74ab16570df3f1f40673aa802fc5",
+    "paths": [
+      "/fees",
+      "/status"
+    ],
+    "widths": [
+      320,
+      390,
+      1440
+    ],
+    "horizontalOverflow": false,
+    "checkedAt": "2026-11-06T12:18:29.700102+00:00"
+  }
+}
