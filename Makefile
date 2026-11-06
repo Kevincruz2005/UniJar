@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-.PHONY: bootstrap contracts check local-smoke container-smoke accounts
+.PHONY: bootstrap contracts check local-smoke container-smoke accounts deploy-sepolia verify-sources oracle-status azure-plan deploy-azure resume-azure smoke-azure
 bootstrap:
 	bash scripts/bootstrap.sh
 	npm ci --prefix backend
@@ -17,3 +17,19 @@ container-smoke: check
 	LOCAL_CONTAINER=1 bash scripts/local-smoke.sh
 accounts:
 	python3 scripts/accounts.py
+deploy-sepolia: check
+	CHAIN_ID=11155111 backend/node_modules/.bin/tsx backend/tools/deploy.ts
+	python3 scripts/export-assets.py deployments/sepolia.json
+	CHAIN_ID=11155111 backend/node_modules/.bin/tsx backend/tools/smoke.ts
+verify-sources:
+	CHAIN_ID=11155111 backend/node_modules/.bin/tsx backend/tools/verify-sources.ts
+oracle-status:
+	CHAIN_ID=11155111 backend/node_modules/.bin/tsx backend/tools/history-status.ts
+azure-plan:
+	bash scripts/azure.sh plan
+deploy-azure:
+	bash scripts/azure.sh deploy
+resume-azure:
+	bash scripts/azure.sh resume
+smoke-azure:
+	bash scripts/azure.sh smoke
