@@ -1,44 +1,20 @@
 {
-  "status": "ready-to-resume-after-local-validation",
-  "timestamp": "2026-11-06T01:35:55.793049+00:00",
+  "status": "complete",
+  "timestamp": "2026-11-06T02:16:50.275Z",
   "sourceCommit": "62ab1501d04a1febfc51042951c9480f9bfd786f",
   "resourceGroup": "unijar-demo-rg",
   "location": "centralindia",
+  "url": "https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io",
+  "imageDigest": "sha256:7aafbcb538f434464230d01dd1a4a913a833281f4e230619158110439a5456d0",
+  "revision": "unijar-api--r-62ab1501-7aafbcb5",
   "environment": {
-    "mode": "WorkloadProfiles",
-    "state": "Updating"
+    "profile": "Consumption",
+    "state": "Succeeded"
   },
-  "foundation": {
-    "state": "Canceled"
-  },
-  "resources": [
-    {
-      "id": "/subscriptions/3207de1c-c619-4e20-bd21-90461932b9ce/resourceGroups/unijar-demo-rg/providers/Microsoft.OperationalInsights/workspaces/unijar-logs",
-      "name": "unijar-logs",
-      "type": "Microsoft.OperationalInsights/workspaces"
-    },
-    {
-      "id": "/subscriptions/3207de1c-c619-4e20-bd21-90461932b9ce/resourceGroups/unijar-demo-rg/providers/Microsoft.ContainerRegistry/registries/unijarc2ed52as6vxy6",
-      "name": "unijarc2ed52as6vxy6",
-      "type": "Microsoft.ContainerRegistry/registries"
-    },
-    {
-      "id": "/subscriptions/3207de1c-c619-4e20-bd21-90461932b9ce/resourceGroups/unijar-demo-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/unijar-pull",
-      "name": "unijar-pull",
-      "type": "Microsoft.ManagedIdentity/userAssignedIdentities"
-    },
-    {
-      "id": "/subscriptions/3207de1c-c619-4e20-bd21-90461932b9ce/resourceGroups/unijar-demo-rg/providers/Microsoft.App/managedEnvironments/unijar-env",
-      "name": "unijar-env",
-      "type": "Microsoft.App/managedEnvironments"
-    }
-  ],
-  "apps": [],
-  "publishedImage": {
-    "digest": "sha256:7aafbcb538f434464230d01dd1a4a913a833281f4e230619158110439a5456d0",
-    "name": "62ab1501d04a1febfc51042951c9480f9bfd786f"
-  },
-  "azureSmoke": "not executed",
-  "note": "Cloud fields are the snapshot at timestamp. Orchestration was cancelled at the prior pause request. Local validation and history consolidation are now complete; the user authorized resuming Azure next. Re-read environment state before resuming. No Azure smoke success or deployed API URL is claimed.",
-  "resumeAuthorizedAt": "2026-11-06T01:43:04.892169+00:00"
+  "localValidation": "deployments/local-validation.json",
+  "deployment": "deployments/azure.json",
+  "azureSmoke": "deployments/azure-smoke.json",
+  "verificationCommand": "make verify-azure",
+  "verificationExitCode": 0,
+  "note": "Local application and container validation preceded Azure resume. Fourteen HTTPS-prepared Sepolia transactions passed; the verifier reconfirmed receipts without replay and checked complete replica replacement, persisted inventory and platform limits. Earlier pause snapshots remain in Git history."
 }

@@ -1,0 +1,96 @@
+{
+  "chainId": 11155111,
+  "sourceCommit": "62ab1501d04a1febfc51042951c9480f9bfd786f",
+  "api": "https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io",
+  "passed": [
+    "chain/config/code",
+    "block-tagged reads",
+    "direct bounds and sale",
+    "auction outbid/refund/settlement",
+    "permissionless no-bid recovery",
+    "invalid action/target"
+  ],
+  "transactions": [
+    "0xa1a32fb451e8567eff3b651bd8cf666f6020cc0171f3a35e65d959365d8cae14",
+    "0x685b042da9d73fa17fcd2dbdaf8e555229acbf0dd19a15a02f9db13d4eb57921",
+    "0xf311e6a22590d67bd9a8131fc366d924b91615f5aa310f1df4cbedcb0c13b927",
+    "0xea8913c831397a526be4148b0690573e557075740937fbd7c765128e13315a0d",
+    "0x74695ae55461f246f1048fec968e89a6099044eb684fec35c1e5d6cf383b0ece",
+    "0x33bef5b3002bd95125247ff915b440c6d591892104ffabc15b1a11e110eafc44",
+    "0x5f45490417fb311c67889ac94924becc9cabca436b623f785f9d307c57f15a87",
+    "0x32107e0689a6d126d46b1ff60f8bc629de29d469d6ca76ba70a4179ad4609543",
+    "0x1b2b2e1a80d592fb32000784b0a487b3b8a5f5a5f6eb2c2ae4e1fa4355f8d174",
+    "0x460e03426c0efd5f0fda699c5248d8d0caf98d32c7b0f6221dead7cf9ddea5e1",
+    "0xeda3ff3e1b4dc19f49ae13a501f6f35fe93d0c4d882709dcb43489b317200c37",
+    "0x66a9d9747fb3e18d31efb8bf613eaec66f2256abab265746fe188e518561c81d",
+    "0xc5515097a587626708ea6117081c616f6ed61586a99f724f2f188dd3c92fb578",
+    "0xadfe236c8b4cd91951a9d4d3052d346a216986509c37bc7f213906691dd3f5b1"
+  ],
+  "timestamp": "2026-11-06T01:56:52.065Z",
+  "restartEvidence": {
+    "before": [
+      {
+        "name": "unijar-api--r-62ab1501-7aafbcb5-58879674db-krjzj",
+        "containers": [
+          {
+            "name": "api",
+            "ready": true,
+            "restarts": 0
+          }
+        ]
+      }
+    ],
+    "after": [
+      {
+        "name": "unijar-api--r-62ab1501-7aafbcb5-5b67f4765c-nzlk9",
+        "containers": [
+          {
+            "name": "api",
+            "ready": true,
+            "restarts": 0
+          }
+        ]
+      }
+    ]
+  },
+  "rateLimitEvidence": {
+    "requestCount": 118,
+    "elapsedMs": 14301,
+    "status": 429,
+    "limit": "120"
+  },
+  "verifiedAt": "2026-11-06T02:16:50.275Z",
+  "azureChecks": {
+    "restartPersistence": "passed",
+    "cors": "passed",
+    "requestSize": "passed",
+    "rateLimit": "passed",
+    "logRedaction": "passed",
+    "rollback": "not applicable: first deployment",
+    "coldStartReadiness": "passed within bounded readiness allowance"
+  },
+  "finalBlock": "12073520",
+  "finalState": {
+    "activeId": "0",
+    "bidLiability": "0",
+    "refundLiability": "0",
+    "directPayments": "1979806",
+    "treasuryPayoutBalance": "4179806"
+  },
+  "verificationCommand": "make verify-azure",
+  "verificationExitCode": 0,
+  "verificationSourceCommit": "b24ec9e",
+  "runtimeConfiguration": {
+    "ingress": {
+      "allowInsecure": false,
+      "external": true,
+      "targetPort": 8080
+    },
+    "maxReplicas": 1,
+    "minReplicas": 0,
+    "registryIdentity": "/subscriptions/3207de1c-c619-4e20-bd21-90461932b9ce/resourceGroups/unijar-demo-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/unijar-pull",
+    "rpcSecretRef": [
+      "sepolia-rpc"
+    ]
+  }
+}
