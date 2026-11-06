@@ -77,11 +77,12 @@ async function smoke(runTransactions = true) {
     run(resolve(root, 'backend/node_modules/.bin/tsx'), ['backend/tools/smoke.ts'], { timeout: 1200000, env: { ...process.env, CHAIN_ID: '11155111', API_URL: deployed.url } });
   } else {
     const existing = JSON.parse(readFileSync(reportPath, 'utf8'));
-    assert.equal(existing.sourceCommit, deployed.sourceCommit); assert.equal(existing.api, deployed.url);
-    assert.equal(existing.chainId, 11155111); assert.equal(existing.transactions.length, 14);
+    assert.equal(existing.sourceCommit, deployed.contractSourceCommit ?? deployed.sourceCommit);
+    assert.equal(existing.apiSourceCommit ?? existing.sourceCommit, deployed.sourceCommit); assert.equal(existing.api, deployed.url);
+    assert.equal(existing.chainId, 11155111); assert.equal(existing.transactions.length, existing.expectedTransactionCount ?? 14);
     const { client, assertChain } = await import('./runtime.js'); await assertChain();
     for (const hash of existing.transactions) assert.equal((await client.getTransactionReceipt({ hash })).status, 'success');
-    console.log('Reconfirmed the existing 14 transaction receipts; no transactions replayed');
+    console.log(`Reconfirmed the existing ${existing.transactions.length} transaction receipts; no transactions replayed`);
   }
   const beforeResponse = await fetch(`${deployed.url}/v1/inventory`); assert.equal(beforeResponse.status, 200);
   const before = await beforeResponse.json();
@@ -139,6 +140,8 @@ async function smoke(runTransactions = true) {
       writeFileSync(resolve(root, 'deployments/azure.json'), JSON.stringify(deployed, null, 2) + '\n');
     }
   }
+  const restoredHealth = await (await fetch(`${deployed.url}/healthz`)).json(); assert.equal(restoredHealth.version, deployed.sourceCommit);
+  const restoredInventory = await (await fetch(`${deployed.url}/v1/inventory`)).json(); assert.deepEqual(restoredInventory.data, before.data);
   const report = JSON.parse(readFileSync(reportPath, 'utf8'));
   report.restartEvidence = { before: replicasBefore, after: replicasAfter };
   report.rateLimitEvidence = rateLimitProof;
@@ -162,18 +165,26 @@ async function main() {
   if (existsSync(resolve(root, '.local/sepolia.env'))) process.loadEnvFile(resolve(root, '.local/sepolia.env'));
   assert.ok(process.env.SEPOLIA_RPC_URL, 'SEPOLIA_RPC_URL is missing');
   const m = loadManifest(resolve(root, 'deployments/sepolia.json')); assert.equal(m.chainId, 11155111);
+  const sourceCommit = run('git', ['rev-parse', 'HEAD']);
+  const runtimePaths = ['backend/src', 'backend/test', 'backend/Dockerfile', 'backend/tsconfig.json', 'backend/package.json', 'backend/package-lock.json', 'scripts/export-assets.py'];
+  run('git', ['diff', '--quiet', 'HEAD', '--', ...runtimePaths]);
+  assert.equal(run('git', ['ls-files', '--others', '--exclude-standard', '--', ...runtimePaths]), '', 'Commit runtime files first');
+  const localValidation = JSON.parse(readFileSync(resolve(root, '.local/container-validation.json'), 'utf8'));
+  assert.equal(localValidation.status, 'passed'); assert.equal(localValidation.chainId, 31337);
+  run('git', ['diff', '--quiet', localValidation.sourceCommit, 'HEAD', '--', ...runtimePaths]);
   const chainSmoke = JSON.parse(readFileSync(resolve(root, 'deployments/sepolia-smoke.json'), 'utf8')); assert.equal(chainSmoke.sourceCommit, m.sourceCommit);
+  assert.ok(chainSmoke.passed.includes('auction self-outbid/outbid/refund/settlement'), 'Run the extended Sepolia smoke before deploying');
   assert.ok(existsSync(resolve(root, '.local/docker-image-id')), 'Complete make container-smoke before Azure deployment');
-  run('git', ['diff', '--quiet', m.sourceCommit, '--', 'contracts', 'oracle-contracts', 'backend/src', 'backend/Dockerfile', 'backend/tsconfig.json', 'backend/package.json', 'backend/package-lock.json']);
+  run('git', ['diff', '--quiet', m.sourceCommit, 'HEAD', '--', 'contracts', 'oracle-contracts']);
   run('python3', ['scripts/export-assets.py', 'deployments/sepolia.json']);
   run(resolve(root, 'backend/node_modules/.bin/tsx'), ['backend/tools/validate-manifest.ts'], { env: { ...process.env, CHAIN_ID: '11155111' } });
   // This local build/run gate precedes paid provisioning and image upload.
   if (!resuming) {
-  run('docker', ['build', '--network', 'host', '--no-cache', '-f', 'backend/Dockerfile', '-t', `unijar:${m.sourceCommit}`, '.'], { timeout: 600000, env: dockerEnv });
+  run('docker', ['build', '--network', 'host', '--no-cache', '-f', 'backend/Dockerfile', '-t', `unijar:${sourceCommit}`, '.'], { timeout: 600000, env: dockerEnv });
   const envFile = resolve(root, '.local/container.env');
   writeFileSync(envFile, `RPC_URL=${process.env.SEPOLIA_RPC_URL}\nEXPECTED_CHAIN_ID=11155111\n`, { mode: 0o600 }); chmodSync(envFile, 0o600);
   try {
-    run('docker', ['run', '-d', '--rm', '--name', 'unijar-preflight', '--network', 'host', '--env-file', envFile, `unijar:${m.sourceCommit}`], { env: dockerEnv });
+    run('docker', ['run', '-d', '--rm', '--name', 'unijar-preflight', '--network', 'host', '--env-file', envFile, `unijar:${sourceCommit}`], { env: dockerEnv });
     const localUrl = dockerEnv.DOCKER_HOST?.includes('unijar-docker') ? 'http://127.0.0.1:18080' : 'http://127.0.0.1:8080';
     await waitReady(localUrl); assert.equal(run('docker', ['exec', 'unijar-preflight', 'id', '-u'], { env: dockerEnv }), '1000');
   } finally { try { run('docker', ['stop', 'unijar-preflight'], { env: dockerEnv }); } catch { /* may not have started */ } unlinkSync(envFile); }
@@ -191,17 +202,17 @@ async function main() {
   const authEnv = { ...dockerEnv, DOCKER_CONFIG: authDirectory };
   try {
     run('docker', ['login', login.loginServer, '--username', '00000000-0000-0000-0000-000000000000', '--password-stdin'], { env: authEnv, input: `${login.accessToken}\n` });
-    const image = `${login.loginServer}/unijar:${m.sourceCommit}`;
-    run('docker', ['tag', `unijar:${m.sourceCommit}`, image], { env: authEnv });
+    const image = `${login.loginServer}/unijar:${sourceCommit}`;
+    run('docker', ['tag', `unijar:${sourceCommit}`, image], { env: authEnv });
     run('docker', ['push', image], { env: authEnv, timeout: 900000 });
   } finally { rmSync(authDirectory, { recursive: true, force: true }); }
   }
-  const digest = az(['acr', 'repository', 'show', '--name', registry, '--image', `unijar:${m.sourceCommit}`]).digest;
+  const digest = az(['acr', 'repository', 'show', '--name', registry, '--image', `unijar:${sourceCommit}`]).digest;
   assert.match(digest, /^sha256:[a-f0-9]{64}$/);
   if (resuming) {
-    const inspected = JSON.parse(run('docker', ['image', 'inspect', `unijar:${m.sourceCommit}`], { env: dockerEnv }));
+    const inspected = JSON.parse(run('docker', ['image', 'inspect', `unijar:${sourceCommit}`], { env: dockerEnv }));
     assert.ok(inspected[0].RepoDigests.includes(`${registry}.azurecr.io/unijar@${digest}`), 'The previously tested local image must match the published digest');
-    const packedManifest = JSON.parse(run('docker', ['run', '--rm', '--network', 'host', '--entrypoint', 'node', `unijar:${m.sourceCommit}`, '-e', "console.log(require('node:fs').readFileSync('public/manifest.json','utf8'))"], { env: dockerEnv }));
+    const packedManifest = JSON.parse(run('docker', ['run', '--rm', '--network', 'host', '--entrypoint', 'node', `unijar:${sourceCommit}`, '-e', "console.log(require('node:fs').readFileSync('public/manifest.json','utf8'))"], { env: dockerEnv }));
     assert.deepEqual(packedManifest, m, 'The previously tested image must contain this exact Sepolia manifest');
     console.log('Resuming with matching source, chain, tested image digest and packaged manifest');
   }
@@ -210,10 +221,10 @@ async function main() {
   const secure = resolve(root, '.local/azure-secure-parameters.json');
   writeFileSync(secure, JSON.stringify({ '$schema': 'https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#', contentVersion: '1.0.0.0', parameters: { rpcUrl: { value: process.env.SEPOLIA_RPC_URL } } }), { mode: 0o600 }); chmodSync(secure, 0o600);
   try {
-    const result = az(['deployment', 'sub', 'create', '--name', 'unijar-api', ...parameters, `@${secure}`, 'deployApplication=true', `imageDigest=${digest}`, `sourceCommit=${m.sourceCommit}`, `corsOrigins=${process.env.CORS_ORIGINS ?? ''}`], 900000);
+    const result = az(['deployment', 'sub', 'create', '--name', 'unijar-api', ...parameters, `@${secure}`, 'deployApplication=true', `imageDigest=${digest}`, `sourceCommit=${sourceCommit}`, `corsOrigins=${process.env.CORS_ORIGINS ?? ''}`], 900000);
     const url = `https://${result.properties.outputs.fqdn.value}`; await waitReady(url);
     const app = az(['containerapp', 'show', '--name', 'unijar-api', '--resource-group', groupName]);
-    const deployment = { url, resourceGroup: groupName, subscription, resourceId: app.id, location, sourceCommit: m.sourceCommit, imageDigest: digest, image: `${registry}.azurecr.io/unijar@${digest}`, revision: app.properties.latestReadyRevisionName, timestamp: new Date().toISOString(), previous: previous ? { image: previous.image, revision: previous.revision } : null };
+    const deployment = { url, resourceGroup: groupName, subscription, resourceId: app.id, location, sourceCommit, contractSourceCommit: m.sourceCommit, imageDigest: digest, image: `${registry}.azurecr.io/unijar@${digest}`, revision: app.properties.latestReadyRevisionName, timestamp: new Date().toISOString(), previous: previous ? { image: previous.image, revision: previous.revision } : null };
     writeFileSync(resolve(root, 'deployments/azure.json'), JSON.stringify(deployment, null, 2) + '\n');
   } finally { unlinkSync(secure); }
   await smoke();

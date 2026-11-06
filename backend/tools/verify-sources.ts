@@ -12,6 +12,7 @@ async function main() {
   const evidence = existsSync(evidencePath) ? JSON.parse(readFileSync(evidencePath, 'utf8')) : { chainId, sourceCommit: m.sourceCommit, contracts: {} };
   const sources: Record<string, [string, string]> = {
     payout: ['contracts', 'src/FixtureToken.sol:FixtureToken'], directAsset: ['contracts', 'src/FixtureToken.sol:FixtureToken'], auctionAsset: ['contracts', 'src/FixtureToken.sol:FixtureToken'],
+    reviewAsset: ['contracts', 'src/FixtureToken.sol:FixtureToken'],
     jar: ['contracts', '../.deps/tjar/src/TokenJar.sol:TokenJar'], releaser: ['contracts', 'src/UniJar.sol:UniJar'],
     factory: ['oracle-contracts', '../.deps/v3-core/contracts/UniswapV3Factory.sol:UniswapV3Factory'],
     pool: ['oracle-contracts', `${resolve(root, '.deps/v3-core/contracts/UniswapV3Pool.sol')}:UniswapV3Pool`],

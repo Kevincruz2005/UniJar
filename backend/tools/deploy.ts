@@ -41,6 +41,7 @@ async function main() {
   const payout = await deploy('payout', tokenPath, ['Mock USD', 'mUSDC', 6]);
   const directAsset = await deploy('directAsset', tokenPath, ['Mock Fee', 'mFEE', 18]);
   const auctionAsset = await deploy('auctionAsset', tokenPath, ['Mock Alt', 'mALT', 18]);
+  const reviewAsset = await deploy('reviewAsset', tokenPath, ['Mock Review', 'mREVIEW', 18]);
   const factoryPath = 'oracle-contracts/out/UniswapV3Factory.sol/UniswapV3Factory.json'; const factoryAbi = artifact(factoryPath).abi;
   const factory = await deploy('factory', factoryPath);
   const tx = async (stage: string, to: Address, abi: ReturnType<typeof artifact>['abi'], method: string, args: readonly unknown[]) => transaction(stage, encodeFunctionData({ abi, functionName: method, args }), to);
@@ -69,6 +70,7 @@ async function main() {
     ['liquidityUSD', payout, accounts.operator!, 1000000n * 10n ** 6n],
     ['liquidityFEE', directAsset, accounts.operator!, 1000000n * 10n ** 18n],
     ['jarFEE', directAsset, jar, 100n * 10n ** 18n], ['jarALT', auctionAsset, jar, 100n * 10n ** 18n],
+    ['jarREVIEW', reviewAsset, jar, 25n * 10n ** 18n],
     ['buyerAUSD', payout, accounts['buyer-a']!, 10000n * 10n ** 6n], ['buyerBUSD', payout, accounts['buyer-b']!, 10000n * 10n ** 6n],
   ] as const) await tx(stage, target, token, 'mint', [recipient, amount]);
   for (const [label, target, amount] of [['usd', payout, 1000000n * 10n ** 6n], ['fee', directAsset, 1000000n * 10n ** 18n]] as const) await tx(`approveFixture:${label}`, target, token, 'approve', [fixture, amount]);
@@ -96,6 +98,7 @@ async function main() {
   const result = manifestSchema.parse(JSON.parse(json({ chainId, sourceCommit, controlledFixture: true,
     toolchain: { foundry: '1.9.0', mainSolc: '0.8.29', mainEvm: 'cancun', oracleSolc: '0.7.6', oracleEvm: 'istanbul', optimizerRuns: '200' },
     addresses: { payout, directAsset, auctionAsset, jar, releaser, factory, pool, reader, fixture },
+    reviewAssets: [reviewAsset],
     roles: { operator: accounts.operator, treasury: accounts.treasury, buyerA: accounts['buyer-a'], buyerB: accounts['buyer-b'] }, deployments: p.deployments, transactions: p.transactions, policy })));
   writeFileSync(output, json(result)); loadManifest(output); console.log(`Validated real ${name} deployment manifest: deployments/${name}.json`);
 }

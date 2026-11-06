@@ -45,15 +45,22 @@ async function main() {
       const fixtureAbi = artifact('oracle-contracts/out/LiquidityFixture.sol/LiquidityFixture.json').abi;
       const activity = await write(a.fixture, fixtureAbi, 'mint', [-887220, 887220, 1000000000n]); hashes.push(activity.transactionHash);
     }
-    assert.equal((await api('/healthz')).status, 200); assert.equal((await api('/readyz')).status, 200);
+    const health = await api('/healthz'); assert.equal(health.status, 200); const apiSourceCommit = health.body.version;
+    assert.equal(health.body.chainId, chainId); assert.equal((await api('/readyz')).status, 200);
     const cfg = await api('/v1/config'); assert.equal(cfg.body.data.manifest.sourceCommit, manifest.sourceCommit); assert.equal(cfg.body.data.adopted, true);
     const adopted = await client.readContract({ address: a.jar, abi: abis.jar, functionName: 'releaser', blockNumber: BigInt(cfg.body.block) }); assert.equal(String(adopted).toLowerCase(), cfg.body.data.currentReleaser.toLowerCase());
     const unauthorized = await api('/v1/transactions/prepare', { action: 'setPaused', sender: accounts['buyer-a'], params: { paused: false } }); assert.equal(unauthorized.status, 409);
+    assert.equal(cfg.body.data.roles.operator.toLowerCase(), accounts.operator!.toLowerCase());
     const inv = await api('/v1/inventory'); assert.equal(inv.status, 200);
     for (const entry of inv.body.data) {
       const at = BigInt(inv.body.block);
+      assert.equal(entry.symbol, await client.readContract({address:entry.asset,abi:abis.token,functionName:'symbol',blockNumber:at}));
+      assert.equal(entry.decimals, Number(await client.readContract({address:entry.asset,abi:abis.token,functionName:'decimals',blockNumber:at})));
+      const mode = await client.readContract({address:a.releaser,abi:abis.sale,functionName:'assetModes',args:[entry.asset],blockNumber:at}); assert.equal(entry.mode, mode);
+      if (manifest.reviewAssets.some(address => address.toLowerCase() === entry.asset.toLowerCase())) { assert.equal(entry.classification, 'HeldForReview'); assert.deepEqual(entry.allowedModes, []); }
       const value = await client.readContract({ address: entry.asset, abi: abis.token, functionName: 'balanceOf', args: [a.jar], blockNumber: at }); assert.equal(String(value), entry.jar);
     }
+    assert.equal(inv.body.data.length, 3 + manifest.reviewAssets.length);
     assert.equal(await read(a.releaser, abis.sale, 'activeId'), 0n, 'Smoke requires no unresolved lot');
     const timestamp = async () => Number((await client.getBlock()).timestamp);
     const directId = String(await read(a.releaser, abis.sale, 'nextId'));
@@ -71,21 +78,25 @@ async function main() {
     await send('openAuction', { asset: a.auctionAsset, quantity: '1000000000000000000', expiry: String(expiry), reserve: '1000000', increment: '100000' });
     await send('approvePayout', { id: auctionId, amount: '1000000' }, 'buyer-a');
     await send('bid', { id: auctionId, amount: '1000000', recipient: accounts['buyer-a'] }, 'buyer-a');
-    await send('approvePayout', { id: auctionId, amount: '1100000' }, 'buyer-b');
-    await send('bid', { id: auctionId, amount: '1100000', recipient: accounts['buyer-b'] }, 'buyer-b');
-    const credit = await api(`/v1/credits/${accounts['buyer-a']}`); assert.equal(credit.body.data.credit, '1000000');
+    await send('approvePayout', { id: auctionId, amount: '1100000' }, 'buyer-a');
+    await send('bid', { id: auctionId, amount: '1100000', recipient: accounts['buyer-a'] }, 'buyer-a');
+    assert.equal(await read(a.releaser, abis.sale, 'credits', [accounts['buyer-a']]), 1000000n);
+    await send('approvePayout', { id: auctionId, amount: '1200000' }, 'buyer-b');
+    await send('bid', { id: auctionId, amount: '1200000', recipient: accounts['buyer-b'] }, 'buyer-b');
+    const credit = await api(`/v1/credits/${accounts['buyer-a']}`); assert.equal(credit.body.data.credit, '2100000');
     const creditOnchain = await client.readContract({ address: a.releaser, abi: abis.sale, functionName: 'credits', args: [accounts['buyer-a']], blockNumber: BigInt(credit.body.block) }); assert.equal(String(creditOnchain), credit.body.data.credit);
-    const refundedBefore = await tokenBalance(a.payout, accounts['buyer-a']!); await send('withdrawRefund', {}, 'buyer-a'); assert.equal(await tokenBalance(a.payout, accounts['buyer-a']!), refundedBefore + 1000000n);
+    const refundedBefore = await tokenBalance(a.payout, accounts['buyer-a']!); await send('withdrawRefund', {}, 'buyer-a'); assert.equal(await tokenBalance(a.payout, accounts['buyer-a']!), refundedBefore + 2100000n);
     const treasuryBefore = await tokenBalance(a.payout, accounts.treasury!); const wonBefore = await tokenBalance(a.auctionAsset, accounts['buyer-b']!);
     await advance(expiry); await send('finalizeAuction', { id: auctionId }, 'buyer-b');
-    assert.equal(await tokenBalance(a.payout, accounts.treasury!), treasuryBefore + 1100000n); assert.equal(await tokenBalance(a.auctionAsset, accounts['buyer-b']!), wonBefore + 10n ** 18n);
+    assert.equal(await tokenBalance(a.payout, accounts.treasury!), treasuryBefore + 1200000n); assert.equal(await tokenBalance(a.auctionAsset, accounts['buyer-b']!), wonBefore + 10n ** 18n);
     const noBidId = String(await read(a.releaser, abis.sale, 'nextId')); const noBidExpiry = await timestamp() + (chainId === 31337 ? 10 : 60);
     const jarBefore = await tokenBalance(a.auctionAsset, a.jar);
     await send('openAuction', { asset: a.auctionAsset, quantity: '1000000000000000000', expiry: String(noBidExpiry), reserve: '1000000', increment: '100000' });
     await advance(noBidExpiry); await send('finalizeAuction', { id: noBidId }, 'buyer-a'); await send('recover', { id: noBidId }, 'buyer-b');
     assert.equal(await tokenBalance(a.auctionAsset, a.jar), jarBefore); assert.equal((await lot(noBidId)).state, 5);
     for (const payload of [{ action: 'unknown', sender: accounts.operator, params: {} }, { action: 'withdrawRefund', sender: accounts.operator, params: {}, to: accounts.treasury }]) assert.equal((await api('/v1/transactions/prepare', payload)).status, 400);
-    const report = { chainId, sourceCommit: manifest.sourceCommit, api: process.env.API_URL ?? 'local ephemeral HTTP API', passed: ['chain/config/code', 'block-tagged reads', 'direct bounds and sale', 'auction outbid/refund/settlement', 'permissionless no-bid recovery', 'invalid action/target'], transactions: hashes, timestamp: new Date().toISOString() };
+    assert.equal(hashes.length, chainId === 31337 ? 15 : 16);
+    const report = { chainId, apiSourceCommit, expectedTransactionCount: hashes.length, sourceCommit: manifest.sourceCommit, api: process.env.API_URL ?? 'local ephemeral HTTP API', passed: ['chain/config/code', 'block-tagged reads', 'direct bounds and sale', 'auction self-outbid/outbid/refund/settlement', 'permissionless no-bid recovery', 'invalid action/target', 'live metadata/policies/review inventory'], transactions: hashes, timestamp: new Date().toISOString() };
     writeFileSync(resolve(root, chainId === 31337 ? '.local/local-smoke.json' : process.env.API_URL ? 'deployments/azure-smoke.json' : 'deployments/sepolia-smoke.json'), json(report));
     console.log(json(report));
   } finally { await local?.close(); }

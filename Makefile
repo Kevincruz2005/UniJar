@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-.PHONY: bootstrap contracts check local-smoke container-smoke accounts deploy-sepolia verify-sources oracle-status azure-plan deploy-azure resume-azure smoke-azure verify-azure
+.PHONY: bootstrap contracts check local-smoke container-smoke accounts deploy-sepolia verify-sources oracle-status azure-plan deploy-azure resume-azure smoke-azure verify-azure review-asset
 bootstrap:
 	bash scripts/bootstrap.sh
 	npm ci --prefix backend
@@ -35,3 +35,5 @@ smoke-azure:
 	bash scripts/azure.sh smoke
 verify-azure:
 	bash scripts/azure.sh verify
+review-asset:
+	CHAIN_ID=11155111 backend/node_modules/.bin/tsx backend/tools/review-asset.ts

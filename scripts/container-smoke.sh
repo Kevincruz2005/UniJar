@@ -35,4 +35,10 @@ if docker run --rm --network host -e EXPECTED_CHAIN_ID=1 -e "RPC_URL=$container_
   echo 'Wrong-chain configuration unexpectedly started' >&2; exit 1
 fi
 docker image inspect unijar:local --format '{{.Id}}' > .local/docker-image-id
+python3 - <<'PYREPORT'
+import json,pathlib,subprocess,datetime
+root=pathlib.Path('.')
+report={'sourceCommit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'imageId':(root/'.local/docker-image-id').read_text().strip(),'chainId':31337,'status':'passed','timestamp':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+(root/'.local/container-validation.json').write_text(json.dumps(report,indent=2)+'\n')
+PYREPORT
 printf 'Clean image build, non-root isolation, transactions, restart persistence and wrong-chain rejection passed.\n'
