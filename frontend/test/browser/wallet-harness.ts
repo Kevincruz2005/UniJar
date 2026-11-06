@@ -42,12 +42,12 @@ export async function advanceTo(timestamp: bigint, page: Page) {
     await client.request({ method: 'evm_mine' as never, params: [] as never });
     await syncClock(page);
   } else {
-    while ((await client.getBlock({ cacheTime: 0 })).timestamp < timestamp) await new Promise(r => setTimeout(r, 8000));
+    while ((await client.getBlock()).timestamp < timestamp) await new Promise(r => setTimeout(r, 8000));
   }
   await page.reload();
 }
 export async function syncClock(page: Page) {
-  if (local) { const timestamp = Number((await client.getBlock({ cacheTime: 0 })).timestamp) * 1000; await page.evaluate(time => { (window as any).__testClockOffset = time - (window as any).__originalNow(); }, timestamp); }
+  if (local) { const timestamp = Number((await client.getBlock()).timestamp) * 1000; await page.evaluate(time => { (window as any).__testClockOffset = time - (window as any).__originalNow(); }, timestamp); }
 }
 
 export async function installWallet(page: Page, initial = 'operator') {
@@ -67,7 +67,7 @@ export async function installWallet(page: Page, initial = 'operator') {
       return body.error ? { error: { message: 'Chain request failed.', code: body.error.code } } : { result: body.result };
     } catch { return { error: { message: 'Wallet test request failed.', code: -32603 } }; }
   });
-  const timestamp = Number((await client.getBlock({ cacheTime: 0 })).timestamp) * 1000;
+  const timestamp = Number((await client.getBlock()).timestamp) * 1000;
   await page.addInitScript(({ addresses, selected, expectedChain, timestamp, local }) => {
     const w = window as any; const listeners: Record<string, Set<(...args: any[]) => void>> = {};
     let active = sessionStorage.getItem('testWalletAlias') || selected;
