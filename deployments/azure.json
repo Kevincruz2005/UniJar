@@ -8,11 +8,12 @@
   "contractSourceCommit": "62ab1501d04a1febfc51042951c9480f9bfd786f",
   "imageDigest": "sha256:00f8a39aac4b8bf77fc040a9b4a420a3fa0b809a2595ee6be81202d76a29dcd0",
   "image": "unijarc2ed52as6vxy6.azurecr.io/unijar@sha256:00f8a39aac4b8bf77fc040a9b4a420a3fa0b809a2595ee6be81202d76a29dcd0",
-  "revision": "unijar-api--r-85039ec0-00f8a39a",
+  "revision": "unijar-api--restore-1793939188904",
   "timestamp": "2026-11-06T04:13:41.719Z",
   "previous": {
     "image": "unijarc2ed52as6vxy6.azurecr.io/unijar@sha256:825739326ca9f331e06fb6b4777b7495d5be27b6a8b141d6d087bf368743d545",
     "revision": "unijar-api--r-eafc5c68-82573932",
     "sourceCommit": "eafc5c6827b43de64062406b4a00eff17cb6c6bc"
-  }
+  },
+  "restoredAt": "2026-11-06T04:27:29.001Z"
 }

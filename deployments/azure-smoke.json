@@ -32,7 +32,7 @@
     "0x9c50880cebc152a0f8aedb001afa7809d5f5e819a56a93d8720d192bf0873f03"
   ],
   "timestamp": "2026-11-06T04:23:17.795Z",
-  "finalBlock": "12074182",
+  "finalBlock": "12074203",
   "finalState": {
     "activeId": "0",
     "bidLiability": "0",
@@ -40,5 +40,69 @@
     "directPayments": "4949515",
     "treasuryPayoutBalance": "10749515",
     "heldForReviewBalance": "25000000000000000000"
+  },
+  "restartEvidence": {
+    "before": [
+      {
+        "name": "unijar-api--r-85039ec0-00f8a39a-9dfb468bb-cl2p9",
+        "containers": [
+          {
+            "name": "api",
+            "ready": true,
+            "restarts": 0
+          }
+        ]
+      }
+    ],
+    "after": [
+      {
+        "name": "unijar-api--r-85039ec0-00f8a39a-95c5c79b8-mnjqr",
+        "containers": [
+          {
+            "name": "api",
+            "ready": true,
+            "restarts": 0
+          }
+        ]
+      }
+    ]
+  },
+  "rateLimitEvidence": {
+    "requestCount": 118,
+    "elapsedMs": 9598,
+    "status": 429,
+    "limit": "120",
+    "variedUntrustedForwardedPrefixes": true
+  },
+  "rollbackEvidence": {
+    "image": "unijarc2ed52as6vxy6.azurecr.io/unijar@sha256:825739326ca9f331e06fb6b4777b7495d5be27b6a8b141d6d087bf368743d545",
+    "version": "eafc5c6827b43de64062406b4a00eff17cb6c6bc",
+    "checkedAt": "2026-11-06T04:26:28.904Z"
+  },
+  "verificationCommand": "make deploy-azure",
+  "verificationSourceCommit": "5173ac15a50ce131bee483e9d90c7e8e759d20c8",
+  "verificationExitCode": 0,
+  "verifiedAt": "2026-11-06T04:27:30.916Z",
+  "azureChecks": {
+    "restartPersistence": "passed",
+    "cors": "passed",
+    "requestSize": "passed",
+    "rateLimit": "passed",
+    "logRedaction": "passed",
+    "rollback": "passed",
+    "coldStartReadiness": "passed within bounded readiness allowance"
+  },
+  "runtimeConfiguration": {
+    "allowInsecure": false,
+    "ingressMode": [
+      "azure"
+    ],
+    "maxReplicas": 1,
+    "minReplicas": 0,
+    "registryIdentity": "/subscriptions/3207de1c-c619-4e20-bd21-90461932b9ce/resourceGroups/unijar-demo-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/unijar-pull",
+    "revision": "unijar-api--restore-1793939188904",
+    "rpcSecretRef": [
+      "sepolia-rpc"
+    ]
   }
 }

@@ -1,12 +1,12 @@
 {
-  "status": "deployed-validation-in-progress",
-  "timestamp": "2026-11-06T04:14:26.513045+00:00",
+  "status": "complete",
+  "timestamp": "2026-11-06T04:27:30.916Z",
   "sourceCommit": "85039ec0993e23885c5036e03572c8ab6a692745",
   "resourceGroup": "unijar-demo-rg",
   "location": "centralindia",
   "url": "https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io",
   "imageDigest": "sha256:00f8a39aac4b8bf77fc040a9b4a420a3fa0b809a2595ee6be81202d76a29dcd0",
-  "revision": "unijar-api--r-85039ec0-00f8a39a",
+  "revision": "unijar-api--restore-1793939188904",
   "environment": {
     "profile": "Consumption",
     "state": "Succeeded"
@@ -14,7 +14,8 @@
   "localValidation": "deployments/local-validation.json",
   "deployment": "deployments/azure.json",
   "azureSmoke": "deployments/azure-smoke.json",
-  "verificationCommand": "make verify-azure",
-  "verificationExitCode": null,
-  "note": "Client-based Azure rate quotas are deployed and Sepolia readiness passed. Expanded HTTPS transactions, restart persistence and rollback checks are still running."
+  "verificationCommand": "make deploy-azure",
+  "verificationExitCode": 0,
+  "note": "Local gate passed before deployment. Sixteen HTTPS-prepared Sepolia transactions, full replica replacement, inventory persistence, client-based rate quotas with varied spoofed prefixes, request limits, denied CORS origin, sampled log redaction and rollback/restore passed. Frontend wallet flows and the actual frontend CORS origin remain outside this backend validation.",
+  "contractSourceCommit": "62ab1501d04a1febfc51042951c9480f9bfd786f"
 }
