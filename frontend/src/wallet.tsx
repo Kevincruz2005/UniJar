@@ -3,14 +3,14 @@ import { createConfig, http, useConnect, useConnection, useDisconnect, useSwitch
 import { getConnectorClient } from 'wagmi/actions';
 import { injected } from 'wagmi/connectors';
 import { sepolia, foundry } from 'wagmi/chains';
-import { createPublicClient, custom, type Address, type Hex } from 'viem';
+import { createPublicClient, createWalletClient, custom, type Hex } from 'viem';
 import { useQueryClient } from '@tanstack/react-query';
 import { api, deployment, useConfig } from './api';
 import { readable, short, validatePrepared, type Intent, type Prepared } from './domain';
 import { Link } from './navigation';
 
 export const chain = deployment.chainId === 31337 ? foundry : sepolia;
-export const walletConfig = createConfig({ chains: [chain], connectors: [injected()], transports: { [chain.id]: http() } });
+export const walletConfig = createConfig({ chains: [chain], connectors: [injected()], transports: { [sepolia.id]: http(), [foundry.id]: http() } });
 type TxState = { status: 'idle' | 'preparing' | 'wallet' | 'pending' | 'confirmed' | 'failed'; hash?: Hex; message?: string; action?: string };
 const TxContext = createContext<{ tx: TxState; run: (intent: Intent) => Promise<boolean>; busy: boolean }>({ tx: { status: 'idle' }, run: async () => false, busy: false });
 export const useTransaction = () => useContext(TxContext);
@@ -36,7 +36,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       const currentChain = await client.request({ method: 'eth_chainId' });
       if (accounts[0]?.toLowerCase() !== sender.toLowerCase() || Number(currentChain) !== chain.id) throw new Error('Wallet or network changed. Review and retry.');
       setTx({ status: 'wallet', action: intent.action });
-      hash = await client.sendTransaction({ account: sender, chain, to: prepared.to, data: prepared.data, value: 0n });
+      const signer = createWalletClient({ account: sender, chain, transport: custom(client) });
+      hash = await signer.sendTransaction({ to: prepared.to, data: prepared.data, value: 0n });
       setTx({ status: 'pending', hash, action: intent.action });
       const reader = createPublicClient({ chain, transport: custom(client) });
       const receipt = await reader.waitForTransactionReceipt({ hash, confirmations: 1, timeout: 180000, pollingInterval: chain.id === 31337 ? 100 : 4000 });
