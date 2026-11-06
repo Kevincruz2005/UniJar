@@ -12,7 +12,8 @@ export const manifestSchema = z.object({
   sourceCommit: z.string().regex(/^[0-9a-f]{40}$/),
   controlledFixture: z.literal(true),
   toolchain: z.record(z.string(), z.string()),
-  addresses: z.object({ jar: address, releaser: address, payout: address, directAsset: address, auctionAsset: address, factory: address, pool: address, reader: address, fixture: address }),
+  addresses: z.object({ jar: address, releaser: address, payout: address, directAsset: address, auctionAsset: address, factory: address, pool: address, reader: address, fixture: address, feeSource: address.optional() }),
+  feeSource: z.object({ sourceCommit: z.string().regex(/^[0-9a-f]{40}$/), asset: address, merchant: address, price: decimal, feeBps: z.number().int().min(1).max(9999) }).optional(),
   reviewAssets: z.array(address).default([]),
   roles: z.object({ operator: address, treasury: address, buyerA: address, buyerB: address }),
   deployments: z.record(z.string(), record),
@@ -22,6 +23,8 @@ export const manifestSchema = z.object({
 export type Manifest = z.infer<typeof manifestSchema>;
 export function loadManifest(path: string): Manifest {
   const manifest = manifestSchema.parse(JSON.parse(readFileSync(path, 'utf8')));
+  if (!!manifest.feeSource !== !!manifest.addresses.feeSource) throw new Error('Fee source requires both configuration and an address');
+  if (manifest.feeSource && (manifest.feeSource.asset.toLowerCase() !== manifest.addresses.auctionAsset.toLowerCase() || manifest.feeSource.merchant.toLowerCase() !== manifest.roles.treasury.toLowerCase())) throw new Error('Fee source asset/merchant differs from the configured fixture');
   for (const [name, value] of Object.entries(manifest.addresses)) {
     if (manifest.deployments[name]?.address.toLowerCase() !== value.toLowerCase()) throw new Error('Manifest deployment mismatch');
   }
@@ -32,7 +35,7 @@ export function loadManifest(path: string): Manifest {
   }
   return manifest;
 }
-export function loadAbis(directory: string): { sale: Abi; token: Abi; jar: Abi } {
+export function loadAbis(directory: string): { sale: Abi; token: Abi; jar: Abi; fee: Abi } {
   const load = (name: string) => JSON.parse(readFileSync(`${directory}/${name}.json`, 'utf8')) as Abi;
-  return { sale: load('UniJar'), token: load('IERC20'), jar: load('TokenJar') };
+  return { sale: load('UniJar'), token: load('IERC20'), jar: load('TokenJar'), fee: load('ReceiptRegistry') };
 }

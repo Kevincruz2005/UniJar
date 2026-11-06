@@ -208,3 +208,35 @@ test('Azure rate quotas use only the appended client IP and local servers ignore
     assert.equal(response.statusCode,i===3?429:400);
   }
 });
+
+test('fee service reads are pinned and prepare permits only its exact price approval and receipt call', async t => {
+  const m = structuredClone(manifest);
+  m.addresses.feeSource = addr(11);
+  m.feeSource = { sourceCommit: '4'.repeat(40), asset: addr(5), merchant: addr(21), price: '10000000000000000000', feeBps: 1000 };
+  m.deployments.feeSource = { address: addr(11), block: '1', transactionHash: `0x${'2'.repeat(64)}`, codeHash: keccak256(code) };
+  class FeeFake extends Fake {
+    badPrice = false;
+    override async read(address: Address, abi: unknown, method: string, args: readonly unknown[], block: bigint): Promise<any> {
+      if (address === addr(11)) {
+        this.calls.push({ method, args, block });
+        const fields: Record<string, unknown> = { asset: addr(5), jar: addr(1), merchant: addr(21), price: this.badPrice ? 3n : 10n ** 19n, feeBps: 1000, feePerReceipt: 10n ** 18n, nextReceiptId: 2n, totalFees: 10n ** 18n, receiptIdOf: 1n };
+        if (method in fields) return fields[method];
+      }
+      return super.read(address, abi, method, args, block);
+    }
+  }
+  const g = new FeeFake(); const app = await buildApp({ manifest: m, gateway: g, abis, readinessTtl: 0 }); t.after(() => app.close());
+  const info = await app.inject('/v1/fee-source'); assert.equal(info.statusCode, 200); assert.equal(info.json().data.price, m.feeSource.price);
+  const referenceHash = `0x${'5'.repeat(64)}`;
+  const wallet = await app.inject(`/v1/fee-source/accounts/${addr(22)}?referenceHash=${referenceHash}`); assert.equal(wallet.statusCode, 200); assert.equal(wallet.json().data.receiptId, '1');
+  for (const amount of [m.feeSource.price, '1', ((1n << 256n) - 1n).toString()]) {
+    const response = await app.inject({ method: 'POST', url: '/v1/transactions/prepare', payload: { action: 'approveFeeAsset', sender: addr(22), params: { amount } } });
+    assert.equal(response.statusCode, amount === m.feeSource.price ? 200 : 400);
+    if (response.statusCode === 200) { assert.equal(response.json().to, addr(5)); assert.equal(response.json().data, encodeFunctionData({ abi: abis.token, functionName: 'approve', args: [addr(11), BigInt(amount)] })); }
+  }
+  const paid = await app.inject({ method: 'POST', url: '/v1/transactions/prepare', payload: { action: 'payForReceipt', sender: addr(22), params: { referenceHash } } });
+  assert.equal(paid.statusCode, 200); assert.equal(paid.json().to, addr(11)); assert.equal(paid.json().data, encodeFunctionData({ abi: abis.fee, functionName: 'pay', args: [referenceHash] }));
+  assert.ok(g.calls.every(c => c.block === 123n));
+  g.badPrice = true; assert.equal((await app.inject('/v1/fee-source')).statusCode, 503);
+  const absent = await appFor(); t.after(() => absent.close()); assert.equal((await absent.inject('/v1/fee-source')).statusCode, 404);
+});

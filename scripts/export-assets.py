@@ -12,6 +12,7 @@ for name, path in {
     'UniJar': 'contracts/out/UniJar.sol/UniJar.json',
     'IERC20': 'contracts/out/FixtureToken.sol/FixtureToken.json',
     'TokenJar': 'contracts/out/TokenJar.sol/TokenJar.json',
+    'ReceiptRegistry': 'fee-contracts/out/ReceiptRegistry.sol/ReceiptRegistry.json',
 }.items():
     artifact = json.loads((root / path).read_text())
     abi = artifact['abi']

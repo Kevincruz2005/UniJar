@@ -18,7 +18,7 @@ const uint = (value: unknown, bits = 256): bigint => {
   const parsed = BigInt(String(value)); if (parsed < 0n || parsed >= 1n << BigInt(bits)) throw new HttpError(400, 'INTEGER_OUT_OF_RANGE'); return parsed;
 };
 
-export async function buildApp(options: { manifest: Manifest; gateway: Gateway; abis: { sale: Abi; token: Abi; jar: Abi }; version?: string; azureIngress?: boolean; allowedOrigins?: string[]; rateMax?: number; readinessTtl?: number; logger?: boolean }) {
+export async function buildApp(options: { manifest: Manifest; gateway: Gateway; abis: { sale: Abi; token: Abi; jar: Abi; fee: Abi }; version?: string; azureIngress?: boolean; allowedOrigins?: string[]; rateMax?: number; readinessTtl?: number; logger?: boolean }) {
   const { manifest: m, gateway: g, abis } = options;
   const a = m.addresses as Record<keyof Manifest['addresses'], Address>;
   const assets = [...new Set([a.directAsset, a.auctionAsset, ...m.reviewAssets as Address[], a.payout])];
@@ -61,6 +61,13 @@ export async function buildApp(options: { manifest: Manifest; gateway: Gateway; 
   const read = (target: Address, abi: Abi, method: string, args: readonly unknown[], block: bigint) => g.read(target, abi, method, args, block);
   const sale = (method: string, args: readonly unknown[], block: bigint) => read(a.releaser, abis.sale, method, args, block);
   async function context() { await ready(); return g.blockNumber(); }
+  async function feeConfig(block: bigint) {
+    if (!a.feeSource || !m.feeSource) throw new HttpError(404, 'FEE_SOURCE_NOT_CONFIGURED');
+    const [asset, jar, merchant, price, feeBps, feePerReceipt, nextReceiptId, totalFees] = await Promise.all(['asset', 'jar', 'merchant', 'price', 'feeBps', 'feePerReceipt', 'nextReceiptId', 'totalFees'].map(method => read(a.feeSource!, abis.fee, method, [], block)));
+    if (String(asset).toLowerCase() !== m.feeSource.asset.toLowerCase() || String(jar).toLowerCase() !== a.jar.toLowerCase() || String(merchant).toLowerCase() !== m.feeSource.merchant.toLowerCase() || String(price) !== m.feeSource.price || Number(feeBps) !== m.feeSource.feeBps || feePerReceipt !== BigInt(m.feeSource.price) * BigInt(m.feeSource.feeBps) / 10000n) throw new HttpError(503, 'FEE_SOURCE_MISMATCH');
+    const [symbol, decimals] = await Promise.all(['symbol', 'decimals'].map(method => read(asset as Address, abis.token, method, [], block)));
+    return { service: a.feeSource, asset: asset as Address, jar, merchant, price: price as bigint, feeBps, feePerReceipt, nextReceiptId, totalFees, symbol, decimals };
+  }
   async function getLot(id: bigint, block: bigint): Promise<Lot> {
     if (id === 0n || id >= (await sale('nextId', [], block) as bigint)) throw new HttpError(404, 'LOT_NOT_FOUND');
     return await sale('getLot', [id], block) as Lot;
@@ -75,6 +82,15 @@ export async function buildApp(options: { manifest: Manifest; gateway: Gateway; 
     }
   }
   const errors = { 400: s.errorResponse, 404: s.errorResponse, 409: s.errorResponse, 413: s.errorResponse, 429: s.errorResponse, 503: s.errorResponse };
+  const feeResponse = s.object({ service: s.address, asset: s.address, jar: s.address, merchant: s.address, price: s.decimal, feeBps: { type: 'integer' }, feePerReceipt: s.decimal, nextReceiptId: s.decimal, totalFees: s.decimal, symbol: { type: 'string' }, decimals: { type: 'integer' } });
+  app.get('/v1/fee-source', { schema: { response: { 200: s.envelope(feeResponse), ...errors } } }, async () => {
+    const block = await context(); return clean({ block, data: await feeConfig(block) });
+  });
+  app.get<{ Params: { address: string }; Querystring: { referenceHash?: Hex } }>('/v1/fee-source/accounts/:address', { schema: { params: s.object({ address: s.address }), querystring: s.object({ referenceHash: s.hash }, []), response: { 200: s.envelope(s.object({ balance: s.decimal, allowance: s.decimal, receiptId: s.decimal })), ...errors } } }, async request => {
+    const block = await context(); const fee = await feeConfig(block); const account = request.params.address;
+    const [balance, allowance, receiptId] = await Promise.all([read(fee.asset, abis.token, 'balanceOf', [account], block), read(fee.asset, abis.token, 'allowance', [account, fee.service], block), request.query.referenceHash ? read(fee.service, abis.fee, 'receiptIdOf', [account, request.query.referenceHash], block) : 0n]);
+    return clean({ block, data: { balance, allowance, receiptId } });
+  });
   app.get('/healthz', { config: { rateLimit: false }, schema: { response: { 200: s.object({ status: { const: 'ok' }, version: { type: 'string' }, chainId: { type: 'integer' } }) } } }, async () => ({ status: 'ok', version, chainId: m.chainId }));
   app.get('/readyz', { config: { rateLimit: false }, schema: { response: { 200: s.object({ status: { const: 'ready' }, version: { type: 'string' }, chainId: { type: 'integer' } }), 503: s.errorResponse } } }, async () => { await ready(); return { status: 'ready', version, chainId: m.chainId }; });
   app.get('/v1/config', { schema: { response: { 200: s.envelope(s.object({ manifest: { type: 'object', additionalProperties: true }, version: { type: 'string' }, adopted: { type: 'boolean' }, currentReleaser: s.address, paused: { type: 'boolean' }, roles: s.object({ owner: s.address, operator: s.address, treasury: s.address, payout: s.address, jar: s.address, reader: s.address, factory: s.address }), activeId: s.decimal, nextId: s.decimal, bidLiability: s.decimal, refundLiability: s.decimal, directPayments: s.decimal, assets: { type: 'array', items: s.assetInfo }, capabilities: s.object({ assetApproval: { const: 'exclusive' } }) })), ...errors } } }, async () => {
@@ -147,6 +163,16 @@ export async function buildApp(options: { manifest: Manifest; gateway: Gateway; 
       if (payment > uint(p.maximum)) throw new HttpError(409, 'MAXIMUM_EXCEEDED');
     }
     switch (action) {
+      case 'approveFeeAsset': {
+        const fee = await feeConfig(block);
+        if (uint(p.amount) !== fee.price) throw new HttpError(400, 'APPROVAL_MUST_EQUAL_PRICE');
+        target = fee.asset; abi = abis.token; method = 'approve'; args = [fee.service, fee.price]; break;
+      }
+      case 'payForReceipt': {
+        const fee = await feeConfig(block);
+        if (/^0x0{64}$/i.test(String(p.referenceHash))) throw new HttpError(400, 'INVALID_REFERENCE');
+        target = fee.service; abi = abis.fee; method = 'pay'; args = [p.referenceHash]; break;
+      }
       case 'approvePayout': {
         const lot = await getLot(id!, block); const amount = uint(p.amount);
         if (amount === (1n << 256n) - 1n || lot.state !== 1 || await g.timestamp(block) >= lot.expiry) throw new HttpError(400, 'INVALID_APPROVAL');

@@ -7,6 +7,8 @@ export const object = (properties: Record<string, unknown>, required = Object.ke
 const integer = (maximum: number) => ({ type: 'integer', minimum: 0, maximum });
 export const policy = object({ pool: address, fee: integer(16777215), window: integer(4294967295), maxAge: integer(4294967295), minLiquidity: positive, maxQuantity: positive, maxTickDeviation: integer(16777215), discountBps: integer(100), maxDuration: integer(4294967295), version: positive });
 export const actionParams = {
+  approveFeeAsset: object({ amount: positive }),
+  payForReceipt: object({ referenceHash: hash }),
   setAssetMode: object({ asset: address, mode: integer(2) }),
   setPolicy: object({ asset: address, policy }),
   setPaused: object({ paused: { type: 'boolean' } }),
