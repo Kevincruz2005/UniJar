@@ -54,7 +54,20 @@ test.describe('real-chain browser wallet journeys', () => {
     await refreshReference(); await installWallet(page); await page.goto('/operator'); await connect(page);
     const treasuryBefore = await balance(manifest.addresses.payout, accounts.treasury!);
     const buyerBefore = await balance(manifest.addresses.directAsset, accounts['buyer-a']!);
-    const id = await open(page, 'direct', '30');
+    let holdRefresh = false;
+    let releaseRefresh!: () => void;
+    const barrier = new Promise<void>(resolve => { releaseRefresh = resolve; });
+    await page.route('**/v1/config', async route => { if (holdRefresh) await barrier; await route.continue(); });
+    await page.route('**/v1/transactions/prepare', async route => { if (route.request().postDataJSON()?.action === 'openDirect') holdRefresh = true; await route.continue(); });
+    let id: bigint;
+    try {
+      id = await open(page, 'direct', '30');
+      await expect(page.getByText('Transaction confirmed.', { exact: true })).toBeVisible();
+      await expect(page.getByText('Refreshing verified balances…', { exact: true })).toBeVisible();
+    } finally {
+      holdRefresh = false; releaseRefresh();
+      await page.unroute('**/v1/config'); await page.unroute('**/v1/transactions/prepare');
+    }
     await selectWallet(page, 'buyer-a');
     await expect(page.getByText('Current quote', { exact: true })).toBeVisible();
     const [payment] = await readSale('quoteDirect', [id]) as [bigint, string];

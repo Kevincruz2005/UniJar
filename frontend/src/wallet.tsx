@@ -13,18 +13,20 @@ export const chain = deployment.chainId === 31337 ? foundry : sepolia;
 export const walletConfig = createConfig({ chains: [chain], connectors: [injected()], transports: { [sepolia.id]: http(), [foundry.id]: http() } });
 type TxState = { status: 'idle' | 'preparing' | 'wallet' | 'pending' | 'confirmed' | 'failed'; hash?: Hex; message?: string; action?: string };
 type Confirmed = { hash: Hex; lotId?: string };
-const TxContext = createContext<{ tx: TxState; run: (intent: Intent) => Promise<Confirmed | false>; busy: boolean }>({ tx: { status: 'idle' }, run: async () => false, busy: false });
+const TxContext = createContext<{ tx: TxState; run: (intent: Intent) => Promise<Confirmed | false>; busy: boolean; refreshing: boolean }>({ tx: { status: 'idle' }, run: async () => false, busy: false, refreshing: false });
 export const useTransaction = () => useContext(TxContext);
 export function TransactionProvider({ children }: { children: ReactNode }) {
   const connection = useConnection();
   const config = useConfig();
   const query = useQueryClient();
   const [tx, setTx] = useState<TxState>({ status: 'idle' });
+  const [refreshing, setRefreshing] = useState(false);
   const lock = useRef(false);
   async function run(intent: Intent) {
     if (lock.current) return false;
     lock.current = true;
     let hash: Hex | undefined;
+    let backgroundRefresh = false;
     try {
       if (!connection.address || connection.chainId !== chain.id || !connection.connector) throw new Error(`Connect your wallet to ${chain.name} before continuing.`);
       if (!config.data || config.isError) throw new Error('Verified configuration is unavailable. Refresh before signing.');
@@ -47,16 +49,20 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       if (confirmed.from.toLowerCase() !== sender.toLowerCase() || confirmed.to?.toLowerCase() !== prepared.to.toLowerCase() || confirmed.input.toLowerCase() !== prepared.data.toLowerCase() || confirmed.value !== 0n) throw new Error('The transaction was replaced by a different request. Inspect the transaction before continuing.');
       if (receipt.status !== 'success') throw new Error('The transaction reverted. No changes from this transaction were applied.');
       const lotId = createdLotId(intent, receipt.logs, deployment);
-      await query.invalidateQueries();
       setTx({ status: 'confirmed', hash, action: intent.action });
+      // Confirmation is a receipt fact. Refreshing balances must not delay it
+      // or navigation to the actual created lot. Keep writes locked meanwhile.
+      backgroundRefresh = true;
+      setRefreshing(true);
+      void query.invalidateQueries().catch(() => undefined).finally(() => { lock.current = false; setRefreshing(false); });
       return { hash, lotId };
     } catch (error) {
       setTx({ status: 'failed', hash, action: intent.action, message: hash ? `Confirmation could not be completed: ${readable(error)} Check the transaction before retrying.` : readable(error) });
       void query.invalidateQueries();
       return false;
-    } finally { lock.current = false; }
+    } finally { if (!backgroundRefresh) lock.current = false; }
   }
-  return <TxContext.Provider value={{ tx, run, busy: ['preparing', 'wallet', 'pending'].includes(tx.status) }}>{children}</TxContext.Provider>;
+  return <TxContext.Provider value={{ tx, run, refreshing, busy: refreshing || ['preparing', 'wallet', 'pending'].includes(tx.status) }}>{children}</TxContext.Provider>;
 }
 export const explorer = (kind: 'address' | 'tx', value: string) => chain.id === 11155111 ? `https://sepolia.etherscan.io/${kind}/${value}` : undefined;
 export function WalletButton() {
@@ -87,8 +93,8 @@ export function WalletButton() {
   </>;
 }
 export function TransactionNotice() {
-  const { tx } = useTransaction();
+  const { tx, refreshing } = useTransaction();
   if (tx.status === 'idle') return null;
   const text = { preparing: 'Checking your transaction…', wallet: 'Review the request in your wallet.', pending: 'Submitted. Waiting for onchain confirmation…', confirmed: 'Transaction confirmed.', failed: tx.message }[tx.status];
-  return <aside className={`transaction-notice ${tx.status}`} role={tx.status === 'failed' ? 'alert' : 'status'} aria-live="polite"><span className="status-indicator" /><div><strong>{text}</strong>{tx.hash && (explorer('tx', tx.hash) ? <a href={explorer('tx', tx.hash)} target="_blank" rel="noreferrer">View transaction ↗</a> : <code>{short(tx.hash)}</code>)}</div></aside>;
+  return <aside className={`transaction-notice ${tx.status}`} role={tx.status === 'failed' ? 'alert' : 'status'} aria-live="polite"><span className="status-indicator" /><div><strong>{text}</strong>{refreshing && <span className="small">Refreshing verified balances…</span>}{tx.hash && (explorer('tx', tx.hash) ? <a href={explorer('tx', tx.hash)} target="_blank" rel="noreferrer">View transaction ↗</a> : <code>{short(tx.hash)}</code>)}</div></aside>;
 }
