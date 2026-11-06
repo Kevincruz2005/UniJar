@@ -1,3 +1,4 @@
+import { SidePattern } from './SidePattern';
 import { Link, PageTitle } from './navigation';
 import { AddressLink, Badge, ErrorState } from './components';
 import { deployment, apiBase, useConfig } from './api';
@@ -47,5 +48,5 @@ function Limits() { return <><h1>A testnet, with<br/>clear boundaries.</h1><p cl
 export function Docs({ slug = 'overview' }: { slug?: string }) {
   const views: Record<string, ReactNode> = { overview: <Overview />, 'getting-started': <GettingStarted />, buying: <Buying />, auctions: <Auctions />, operator: <OperatorGuide />, contracts: <Contracts />, api: <ApiDocs />, limits: <Limits /> };
   const topic = topics.find(t => t[0] === slug);
-  return <div className="docs-layout"><PageTitle title={`${topic?.[1] ?? 'Not found'} · Docs`} /><aside className="docs-sidebar"><span className="eyebrow">UNIJAR / DOCS</span><nav aria-label="Documentation">{topics.map(([id, label, url]) => <Link key={id} href={url} aria-current={id === slug ? 'page' : undefined}>{label}<span>{id === slug ? '↗' : ''}</span></Link>)}</nav><Link href="/lots" className="docs-back">Explore the app ↗</Link></aside><article className="docs-content">{views[slug] ?? <><h1>Page not found.</h1><Link href="/docs">Return to docs ↗</Link></>}</article></div>;
+  return <div className="docs-layout"><SidePattern className="docs-pattern" /><PageTitle title={`${topic?.[1] ?? 'Not found'} · Docs`} /><aside className="docs-sidebar"><span className="eyebrow">UNIJAR / DOCS</span><nav aria-label="Documentation">{topics.map(([id, label, url]) => <Link key={id} href={url} aria-current={id === slug ? 'page' : undefined}>{label}<span>{id === slug ? '↗' : ''}</span></Link>)}</nav><Link href="/lots" className="docs-back">Explore the app ↗</Link></aside><article className="docs-content">{views[slug] ?? <><h1>Page not found.</h1><Link href="/docs">Return to docs ↗</Link></>}</article></div>;
 }
