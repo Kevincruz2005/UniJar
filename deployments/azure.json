@@ -15,5 +15,8 @@
     "revision": "unijar-api--whhiq9k",
     "sourceCommit": "85039ec0993e23885c5036e03572c8ab6a692745"
   },
-  "restoredAt": "2026-11-06T11:48:38.036Z"
+  "restoredAt": "2026-11-06T11:48:38.036Z",
+  "corsOrigins": [
+    "https://unijar-web.purplewater-5aec7560.centralindia.azurecontainerapps.io"
+  ]
 }
