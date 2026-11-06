@@ -1,12 +1,14 @@
 # UniJar
 
-Backend for the ETHGlobal Mumbai 2026 controlled demo. UniJar sells exact batches
+Web application and backend for the ETHGlobal Mumbai 2026 controlled demo. UniJar sells exact batches
 of fees held in the original Uniswap TokenJar through funded auctions or guarded,
 v3-reference-priced direct purchases. The reference pool supplies a price; a
 direct purchase transfers payment straight to treasury and does not swap.
 
-The complete MVP requirements are in [PRD.md](PRD.md). The backend is implemented;
-the wallet-connected frontend is the next phase. [Validation evidence](docs/VALIDATION.md)
+The complete MVP requirements are in [PRD.md](PRD.md). The light-theme frontend
+includes a landing page, separate lot/inventory/funds pages, documentation and
+live-role operator controls. Wallet actions use injected EVM wallets and verified
+unsigned API preparations. [Validation evidence](docs/VALIDATION.md)
 and [testnet data sources](docs/TESTNET.md) describe the current implementation.
 
 ## Validation order and current status
@@ -47,7 +49,43 @@ and logs are ignored. `container-smoke` repeats transactions through a clean
 non-root image, verifies restart persistence and rejects a wrong-chain runtime.
 It uses `DOCKER_HOST`, or the task-local rootless socket when present.
 
-## Sepolia
+## Frontend development
+
+```sh
+npm ci --prefix frontend --legacy-peer-deps
+make web-dev
+```
+
+Open `http://localhost:5173`. The development proxy reads the existing Azure
+Sepolia API. No private RPC URL or `.env` file is required in the frontend.
+Only `VITE_API_URL`, a public HTTPS API URL, may be configured through
+`frontend/.env.example`; the default uses a same-origin development proxy.
+
+```sh
+make web-check
+# In a clean checkout, with contracts/ABIs built and .tools/ available:
+bash scripts/web-local.sh
+# In another terminal, while the Anvil browser demo serves on port 5174:
+WALLET_TEST_NETWORK=local BROWSER_BASE_URL=http://localhost:5174 \
+  npm --prefix frontend run test:browser -- wallet.spec.ts
+```
+
+The local runner owns a loopback-only chain and API, deploys the real contracts,
+creates genuine local v3 observations and starts the browser app. Stop it with
+Ctrl+C. Wallet integration tests sign through encrypted disposable keystores
+in the Node test process; no private key is injected into the browser. These
+tests do not substitute for manual MetaMask/Rabby extension checks.
+Install the matching Chromium with `npx playwright install chromium` from
+`frontend/`, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to an existing compatible
+Chromium. Public browser checks use `make web-browser` with the dev server running.
+
+`make deploy-web` requires the existing Azure resources and successful ignored
+local validation evidence. It compiles the locked production bundle, packages
+only static files and the non-root host, checks the image locally, publishes its
+exact digest and adds the actual HTTPS frontend origin to the API's CORS list.
+No RPC credential or signing key enters the frontend image.
+
+## Sepolia contracts
 
 ```sh
 make accounts
