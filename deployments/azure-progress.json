@@ -1,12 +1,12 @@
 {
   "status": "deployed-validation-in-progress",
-  "timestamp": "2026-11-06T03:15:41.233057+00:00",
-  "sourceCommit": "eafc5c6827b43de64062406b4a00eff17cb6c6bc",
+  "timestamp": "2026-11-06T04:14:26.513045+00:00",
+  "sourceCommit": "85039ec0993e23885c5036e03572c8ab6a692745",
   "resourceGroup": "unijar-demo-rg",
   "location": "centralindia",
   "url": "https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io",
-  "imageDigest": "sha256:825739326ca9f331e06fb6b4777b7495d5be27b6a8b141d6d087bf368743d545",
-  "revision": "unijar-api--r-eafc5c68-82573932",
+  "imageDigest": "sha256:00f8a39aac4b8bf77fc040a9b4a420a3fa0b809a2595ee6be81202d76a29dcd0",
+  "revision": "unijar-api--r-85039ec0-00f8a39a",
   "environment": {
     "profile": "Consumption",
     "state": "Succeeded"
@@ -16,5 +16,5 @@
   "azureSmoke": "deployments/azure-smoke.json",
   "verificationCommand": "make verify-azure",
   "verificationExitCode": null,
-  "note": "New API version is deployed and ready. Expanded HTTPS transaction and platform validation is still running; no completed validation is claimed for this revision yet."
+  "note": "Client-based Azure rate quotas are deployed and Sepolia readiness passed. Expanded HTTPS transactions, restart persistence and rollback checks are still running."
 }
