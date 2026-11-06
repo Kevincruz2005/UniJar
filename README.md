@@ -24,6 +24,13 @@ the user's request. Original history is retained on
 When publishing the repository, publish the deployed-source tag with `main` so
 that provenance remains resolvable. No remote history has been force-pushed.
 
+## Hackathon provenance
+
+The selected track is Classic / From Scratch. [AI use and original history](docs/AI-USAGE.md)
+are disclosed explicitly, including the prior history consolidation. Original
+commits remain on `archive/before-local-first-rewrite`. Track eligibility and
+meaningful human contributions are not certified by passing tests or Git dates.
+
 ## Run locally
 
 Requirements: Linux, Node 24, npm, Git, Python 3, curl, make; Docker for container
