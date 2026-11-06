@@ -4,7 +4,8 @@ export type Policy = { pool: Address; fee: number; window: number; maxAge: numbe
 export type Asset = { asset: Address; name: string; symbol: string; decimals: number; mode: number; classification: string; allowedModes: string[]; policy: Policy };
 export type Inventory = Asset & { jar: string; escrow: string; accounted: string };
 export type Lot = { mode: number; state: number; asset: Address; quantity: string; committedAt: string; expiry: string; reserve: string; increment: string; bidder: Address; recipient: Address; highest: string; policyHash: Hex; policy: Policy };
-export type Deployment = { chainId: number; sourceCommit: string; addresses: Record<string, Address>; deployments: Record<string, { address: Address; codeHash: Hex }> };
+export type Deployment = { chainId: number; sourceCommit: string; addresses: Record<string, Address>; deployments: Record<string, { address: Address; codeHash: Hex }>; feeSource?: { sourceCommit: string; asset: Address; merchant: Address; price: string; feeBps: number } };
+export type FeeSource = { service: Address; asset: Address; jar: Address; merchant: Address; price: string; feeBps: number; feePerReceipt: string; nextReceiptId: string; totalFees: string; symbol: string; decimals: number };
 export type Config = { manifest: Deployment; version: string; adopted: boolean; currentReleaser: Address; paused: boolean; roles: Record<string, Address>; activeId: string; nextId: string; assets: Asset[]; bidLiability: string; refundLiability: string; directPayments: string; capabilities: { assetApproval: string } };
 export type Credits = { credit: string; payoutBalance: string; allowance: string; payout: Address; spender: Address };
 export type Quote = { eligible: boolean; reason: string; payment: string | null; policyHash: Hex; reference: Record<string, unknown> | null };
@@ -25,6 +26,7 @@ export const saleAbi = parseAbi([
   'function setPolicy(address asset,(address pool,uint24 fee,uint32 window,uint32 maxAge,uint128 minLiquidity,uint128 maxQuantity,uint24 maxTickDeviation,uint16 discountBps,uint32 maxDuration,uint64 version) policy)',
 ]);
 export const tokenAbi = parseAbi(['function approve(address spender,uint256 amount) returns (bool)', 'function balanceOf(address account) view returns (uint256)', 'function allowance(address owner,address spender) view returns (uint256)']);
+export const receiptAbi = parseAbi(['function pay(bytes32 referenceHash) returns (uint256)']);
 export const same = (a?: string, b?: string) => !!a && !!b && a.toLowerCase() === b.toLowerCase();
 // Read the ID from this receipt, never from a configuration snapshot's nextId.
 export function createdLotId(intent: Intent, logs: Pick<Log, 'address' | 'data' | 'topics'>[], deployment: Deployment): string | undefined {
@@ -66,13 +68,27 @@ export function validateConfig(config: Config, pinned: Deployment) {
     if (!live || !same(live.address, deployment.address) || !same(live.codeHash, deployment.codeHash)) throw new Error('Contract code identity mismatch.');
   }
   for (const name of ['jar', 'payout']) if (!same(config.roles[name], pinned.addresses[name])) throw new Error('Live role does not match deployment.');
+  if (JSON.stringify(config.manifest.feeSource) !== JSON.stringify(pinned.feeSource)) throw new Error('Fee service deployment mismatch.');
   return config;
+}
+export function validateFeeSource(fee: FeeSource, deployment: Deployment) {
+  const pinned = deployment.feeSource;
+  if (!pinned || !same(fee.service, deployment.addresses.feeSource) || !same(fee.asset, pinned.asset) || !same(fee.jar, deployment.addresses.jar) || !same(fee.merchant, pinned.merchant) || fee.price !== pinned.price || fee.feeBps !== pinned.feeBps || BigInt(fee.feePerReceipt) !== BigInt(pinned.price) * BigInt(pinned.feeBps) / 10000n) throw new Error('Fee service terms differ from the verified deployment.');
+  return fee;
 }
 export function expectedTransaction(intent: Intent, deployment: Deployment): { to: Address; data: Hex } {
   const p = intent.params;
   const n = (key: string) => BigInt(String(p[key]));
   let args: unknown[];
   switch (intent.action) {
+    case 'approveFeeAsset': {
+      if (!deployment.feeSource || !deployment.addresses.feeSource || String(p.amount) !== deployment.feeSource.price) throw new Error('Fee approval must match the verified service price.');
+      return { to: deployment.feeSource.asset, data: encodeFunctionData({ abi: tokenAbi, functionName: 'approve', args: [deployment.addresses.feeSource, n('amount')] }) };
+    }
+    case 'payForReceipt': {
+      if (!deployment.feeSource || !deployment.addresses.feeSource) throw new Error('Fee service is not configured.');
+      return { to: deployment.addresses.feeSource, data: encodeFunctionData({ abi: receiptAbi, functionName: 'pay', args: [p.referenceHash as Hex] }) };
+    }
     case 'approvePayout': return { to: deployment.addresses.payout!, data: encodeFunctionData({ abi: tokenAbi, functionName: 'approve', args: [deployment.addresses.releaser!, n('amount')] }) };
     case 'openDirect': args = [p.asset, n('quantity'), n('expiry')]; break;
     case 'openAuction': args = [p.asset, n('quantity'), n('expiry'), n('reserve'), n('increment')]; break;

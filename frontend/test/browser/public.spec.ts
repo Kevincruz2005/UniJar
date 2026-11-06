@@ -32,7 +32,7 @@ test('funds and operator pages explain disconnected and unauthorized access', as
 });
 test('mobile navigation keeps the wallet visible and prevents horizontal page overflow', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  for (const path of ['/', '/inventory', '/wallet/credits', '/docs', '/docs/api']) {
+  for (const path of ['/', '/inventory', '/wallet/credits', '/docs', '/docs/api', '/status', '/fees']) {
     await page.goto(path); await expect(page.locator('header').getByRole('button', { name: 'Connect wallet' })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
@@ -68,4 +68,12 @@ test('status distinguishes process liveness from failed chain readiness', async 
   await expect(page.getByText('backend-test-build', { exact: true })).toBeVisible();
   await expect(page.locator('main').getByRole('link', { name: 'My funds' })).toBeVisible();
   await expect(page.locator('main').getByRole('link', { name: 'Lot lifecycle actions' })).toBeVisible();
+});
+
+test('an unconfigured fee source offers no invented payment terms', async ({ page }) => {
+  await page.route('**/v1/fee-source', route => route.fulfill({ status: 404, json: { error: 'FEE_SOURCE_NOT_CONFIGURED' } }));
+  await page.goto('/fees');
+  await expect(page.getByRole('heading', { name: 'Give fees a starting point.' })).toBeVisible();
+  await expect(page.getByText('Unable to load verified data.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Pay & register/ })).toHaveCount(0);
 });

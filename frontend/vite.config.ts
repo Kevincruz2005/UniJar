@@ -10,11 +10,11 @@ export default defineConfig(({ mode }) => {
   if (manifest.chainId !== 11155111 && !(mode === 'test' && manifest.chainId === 31337)) {
     throw new Error('Production frontend must use the verified Sepolia deployment.');
   }
-  const { chainId, sourceCommit, addresses, deployments } = manifest;
+  const { chainId, sourceCommit, addresses, deployments, feeSource } = manifest;
   const proxy = { '/api': { target: env.API_PROXY_TARGET ?? 'https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io', changeOrigin: true, rewrite: (path: string) => path.replace(/^\/api/, '') } };
   return {
     plugins: [react()],
-    define: { __DEPLOYMENT__: JSON.stringify({ chainId, sourceCommit, addresses, deployments }), __BUILD_SHA__: JSON.stringify(execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()) },
+    define: { __DEPLOYMENT__: JSON.stringify({ chainId, sourceCommit, addresses, deployments, feeSource }), __BUILD_SHA__: JSON.stringify(execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()) },
     server: { port: 5173, strictPort: true, proxy },
     preview: { port: 4173, strictPort: true, proxy },
     build: { sourcemap: false },

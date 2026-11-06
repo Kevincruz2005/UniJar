@@ -63,3 +63,12 @@ test('creation navigation uses the matching confirmed event and rejects ambiguou
   assert.throws(() => createdLotId({ ...opening, action: 'openDirect' }, [log], deployment));
   assert.equal(createdLotId(intent, [], deployment), undefined);
 });
+
+test('fee approvals and payments bind the pinned service, token and finite price', () => {
+  const pinned: Deployment = { ...deployment, addresses: { ...deployment.addresses, feeSource: sender }, feeSource: { sourceCommit: '5'.repeat(40), asset: manifest.addresses.auctionAsset as Address, merchant: manifest.roles.treasury as Address, price: '10000000000000000000', feeBps: 1000 } };
+  const approval = expectedTransaction({ action: 'approveFeeAsset', params: { amount: pinned.feeSource!.price } }, pinned);
+  assert.equal(approval.to, manifest.addresses.auctionAsset);
+  assert.throws(() => expectedTransaction({ action: 'approveFeeAsset', params: { amount: '1' } }, pinned));
+  assert.equal(expectedTransaction({ action: 'payForReceipt', params: { referenceHash: hash } }, pinned).to, sender);
+  assert.throws(() => expectedTransaction({ action: 'payForReceipt', params: { referenceHash: hash } }, { ...pinned, feeSource: undefined }));
+});
