@@ -6,13 +6,14 @@ import { sepolia, foundry } from 'wagmi/chains';
 import { createPublicClient, createWalletClient, custom, type Hex } from 'viem';
 import { useQueryClient } from '@tanstack/react-query';
 import { api, deployment, useConfig } from './api';
-import { readable, short, validatePrepared, type Intent, type Prepared } from './domain';
+import { createdLotId, readable, short, validatePrepared, type Intent, type Prepared } from './domain';
 import { Link } from './navigation';
 
 export const chain = deployment.chainId === 31337 ? foundry : sepolia;
 export const walletConfig = createConfig({ chains: [chain], connectors: [injected()], transports: { [sepolia.id]: http(), [foundry.id]: http() } });
 type TxState = { status: 'idle' | 'preparing' | 'wallet' | 'pending' | 'confirmed' | 'failed'; hash?: Hex; message?: string; action?: string };
-const TxContext = createContext<{ tx: TxState; run: (intent: Intent) => Promise<boolean>; busy: boolean }>({ tx: { status: 'idle' }, run: async () => false, busy: false });
+type Confirmed = { hash: Hex; lotId?: string };
+const TxContext = createContext<{ tx: TxState; run: (intent: Intent) => Promise<Confirmed | false>; busy: boolean }>({ tx: { status: 'idle' }, run: async () => false, busy: false });
 export const useTransaction = () => useContext(TxContext);
 export function TransactionProvider({ children }: { children: ReactNode }) {
   const connection = useConnection();
@@ -45,9 +46,10 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       const confirmed = await reader.getTransaction({ hash });
       if (confirmed.from.toLowerCase() !== sender.toLowerCase() || confirmed.to?.toLowerCase() !== prepared.to.toLowerCase() || confirmed.input.toLowerCase() !== prepared.data.toLowerCase() || confirmed.value !== 0n) throw new Error('The transaction was replaced by a different request. Inspect the transaction before continuing.');
       if (receipt.status !== 'success') throw new Error('The transaction reverted. No changes from this transaction were applied.');
+      const lotId = createdLotId(intent, receipt.logs, deployment);
       await query.invalidateQueries();
       setTx({ status: 'confirmed', hash, action: intent.action });
-      return true;
+      return { hash, lotId };
     } catch (error) {
       setTx({ status: 'failed', hash, action: intent.action, message: hash ? `Confirmation could not be completed: ${readable(error)} Check the transaction before retrying.` : readable(error) });
       void query.invalidateQueries();

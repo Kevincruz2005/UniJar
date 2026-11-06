@@ -30,8 +30,8 @@ export function Operator() {
       if (asset.mode === 2 && minutes * 60 > asset.policy.maxDuration) throw new Error('Duration exceeds the direct policy maximum.');
       const expiry = String(Math.floor(Date.now() / 1000) + minutes * 60);
       const params = { asset: asset.asset, quantity: qty, expiry, ...(asset.mode === 1 ? { reserve: units(reserve, payout.decimals), increment: units(increment, payout.decimals) } : {}) };
-      const id = cfg.nextId;
-      if (await run({ action: asset.mode === 2 ? 'openDirect' : 'openAuction', params })) navigate(`/lots/${id}`);
+      const confirmed = await run({ action: asset.mode === 2 ? 'openDirect' : 'openAuction', params });
+      if (confirmed && confirmed.lotId) navigate(`/lots/${confirmed.lotId}`);
     } catch (e) { setError(readable(e)); }
   }
   async function updatePolicy() {

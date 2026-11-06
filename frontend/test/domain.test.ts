@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { amount, units, minimumBid, recipientAddress, validateConfig, expectedTransaction, validatePrepared, type Config, type Deployment, type Lot, type Prepared, type Intent } from '../src/domain';
+import { amount, units, createdLotId, saleAbi, minimumBid, recipientAddress, validateConfig, expectedTransaction, validatePrepared, type Config, type Deployment, type Lot, type Prepared, type Intent } from '../src/domain';
 import manifest from '../../deployments/sepolia.json';
-import type { Address, Hex } from 'viem';
+import { encodeAbiParameters, encodeEventTopics, type Address, type Hex } from 'viem';
 const deployment = manifest as unknown as Deployment;
 const sender = manifest.roles.buyerA as Address;
 const hash = `0x${'ab'.repeat(32)}` as Hex;
@@ -48,4 +48,18 @@ test('wallet guard refuses altered chain, sender, native value, calldata and tar
 test('wallet guard binds the frozen policy and refuses unsupported calls', () => {
   assert.throws(() => validatePrepared({ ...prepared(), expectedPolicyHash: null }, intent, sender, deployment));
   assert.throws(() => expectedTransaction({ action: 'transfer', params: {} }, deployment));
+});
+
+test('creation navigation uses the matching confirmed event and rejects ambiguous or forged logs', () => {
+  const opening: Intent = { action: 'openAuction', params: { asset: manifest.addresses.auctionAsset, quantity: '100', expiry: '1900000000' } };
+  const log = {
+    address: manifest.addresses.releaser as Address,
+    topics: encodeEventTopics({ abi: saleAbi, eventName: 'Opened', args: { id: 83n, asset: manifest.addresses.auctionAsset as Address } }) as [Hex, ...Hex[]],
+    data: encodeAbiParameters([{ type: 'uint8' }, { type: 'uint128' }, { type: 'uint64' }, { type: 'bytes32' }], [1, 100n, 1900000000n, hash]),
+  };
+  assert.equal(createdLotId(opening, [log], deployment), '83');
+  for (const logs of [[], [log, log], [{ ...log, address: sender }], [{ ...log, data: '0x' as Hex }]]) assert.throws(() => createdLotId(opening, logs, deployment));
+  for (const patch of [{ quantity: '101' }, { asset: sender }, { expiry: '1900000001' }]) assert.throws(() => createdLotId({ ...opening, params: { ...opening.params, ...patch } }, [log], deployment));
+  assert.throws(() => createdLotId({ ...opening, action: 'openDirect' }, [log], deployment));
+  assert.equal(createdLotId(intent, [], deployment), undefined);
 });

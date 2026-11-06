@@ -1,4 +1,4 @@
-import { encodeFunctionData, isAddress, parseAbi, parseUnits, formatUnits, type Address, type Hex } from 'viem';
+import { decodeEventLog, encodeFunctionData, isAddress, parseAbi, parseUnits, formatUnits, type Address, type Hex, type Log } from 'viem';
 
 export type Policy = { pool: Address; fee: number; window: number; maxAge: number; minLiquidity: string; maxQuantity: string; maxTickDeviation: number; discountBps: number; maxDuration: number; version: string };
 export type Asset = { asset: Address; name: string; symbol: string; decimals: number; mode: number; classification: string; allowedModes: string[]; policy: Policy };
@@ -13,6 +13,7 @@ export type Prepared = { chainId: number; from: Address; to: Address; data: Hex;
 export type Intent = { action: string; params: Record<string, unknown> };
 
 export const saleAbi = parseAbi([
+  'event Opened(uint256 indexed id,uint8 mode,address indexed asset,uint128 quantity,uint64 expiry,bytes32 policyHash)',
   'function openDirect(address asset,uint128 quantity,uint64 expiry)',
   'function openAuction(address asset,uint128 quantity,uint64 expiry,uint256 reserve,uint256 increment)',
   'function bid(uint256 id,uint256 amount,address recipient)',
@@ -25,6 +26,20 @@ export const saleAbi = parseAbi([
 ]);
 export const tokenAbi = parseAbi(['function approve(address spender,uint256 amount) returns (bool)', 'function balanceOf(address account) view returns (uint256)', 'function allowance(address owner,address spender) view returns (uint256)']);
 export const same = (a?: string, b?: string) => !!a && !!b && a.toLowerCase() === b.toLowerCase();
+// Read the ID from this receipt, never from a configuration snapshot's nextId.
+export function createdLotId(intent: Intent, logs: Pick<Log, 'address' | 'data' | 'topics'>[], deployment: Deployment): string | undefined {
+  if (!['openDirect', 'openAuction'].includes(intent.action)) return undefined;
+  const matches: bigint[] = [];
+  for (const log of logs) {
+    if (!same(log.address, deployment.addresses.releaser)) continue;
+    try {
+      const { args } = decodeEventLog({ abi: saleAbi, eventName: 'Opened', topics: log.topics, data: log.data, strict: true });
+      if (args.mode === (intent.action === 'openDirect' ? 2 : 1) && same(args.asset, String(intent.params.asset)) && args.quantity === BigInt(String(intent.params.quantity)) && args.expiry === BigInt(String(intent.params.expiry)) && args.id > 0n) matches.push(args.id);
+    } catch { /* Unrelated or malformed logs are not evidence of lot creation. */ }
+  }
+  if (matches.length !== 1) throw new Error('Confirmed receipt does not identify exactly one matching lot. Inspect the transaction before retrying.');
+  return matches[0]!.toString();
+}
 export const short = (address: string) => `${address.slice(0, 6)}…${address.slice(-4)}`;
 export const states = ['Missing', 'Open', 'Sold', 'Cancelled', 'Unsold', 'Recovered'];
 export const modeName = (mode: number) => mode === 2 ? 'Direct purchase' : mode === 1 ? 'Auction' : 'Held for review';
