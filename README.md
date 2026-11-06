@@ -79,7 +79,11 @@ Install the matching Chromium with `npx playwright install chromium` from
 `frontend/`, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to an existing compatible
 Chromium. Public browser checks use `make web-browser` with the dev server running.
 
-`make deploy-web` requires the existing Azure resources and successful ignored
+With the local demo running, `npm --prefix frontend run validate:local` runs
+the complete frontend gate and writes the ignored local validation evidence.
+It starts a production preview if one is not already running.
+
+`make deploy-web` requires the existing Azure resources and that successful
 local validation evidence. It compiles the locked production bundle, packages
 only static files and the non-root host, checks the image locally, publishes its
 exact digest and adds the actual HTTPS frontend origin to the API's CORS list.

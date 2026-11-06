@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test test/*.test.ts",
     "test:browser": "playwright test",
-    "deploy:azure": "tsx tools/deploy-azure.ts"
+    "deploy:azure": "tsx tools/deploy-azure.ts",
+    "validate:local": "tsx tools/validate-local.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "5.106.1",
