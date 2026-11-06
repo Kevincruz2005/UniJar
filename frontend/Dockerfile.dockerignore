@@ -1,0 +1,15 @@
+**
+!frontend/
+!frontend/package.json
+!frontend/package-lock.json
+!frontend/tsconfig.json
+!frontend/vite.config.ts
+!frontend/index.html
+!frontend/src/
+!frontend/src/**
+!frontend/public/
+!frontend/public/**
+!frontend/server.mjs
+!frontend/Dockerfile
+!deployments/
+!deployments/sepolia.json
