@@ -12,7 +12,7 @@ The authoritative scope and acceptance requirements are [START.md](START.md),
 
 1. Local application and Docker validation passed at `local-validated-v1` (`008d267`): 27 contract tests, six API tests, and 26 confirmed local transactions.
 2. Existing Sepolia fixtures and 14 successful smoke transactions are recorded separately in `deployments/`.
-3. Azure is deployed at `https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io`. HTTPS liveness, readiness and OpenAPI checks passed; the full transaction and restart smoke gate is in progress.
+3. Azure validation passed: 14 additional Sepolia transactions through the HTTPS API, restart persistence, readiness, CORS, request-size enforcement, log redaction and rate limiting. Live endpoints: [health](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/healthz) and [OpenAPI](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/openapi.json).
 
 The main history was consolidated into substantial local-to-cloud milestones at
 the user's request. Original history is retained on
@@ -119,6 +119,8 @@ does not guarantee a later wallet transaction will succeed.
 make azure-plan
 make deploy-azure
 make smoke-azure
+# Recheck saved receipts and platform behavior without signing more transactions:
+make verify-azure
 ```
 
 The default target is `unijar-demo-rg` in Central India on the selected Azure
@@ -142,7 +144,7 @@ After an interrupted cloud deployment, `make resume-azure` reuses the existing
 published image only when its digest matches the previously tested local image,
 its packaged Sepolia manifest matches, and the application source is unchanged.
 
-Basic ACR's Central India retail rate checked on 2026-11-05 UTC was US$0.1666/day
+Basic ACR's Central India retail rate checked on 2026-11-06 UTC was US$0.1666/day
 (about US$5 per 30 days). Compute, logs, HTTP requests, transfer and an external
 RPC may add charges. Free grants, student credit and taxes are not included in
 that estimate. See the [official pricing](https://azure.microsoft.com/en-us/pricing/details/container-apps/)
@@ -150,8 +152,11 @@ and [Azure Retail Prices API](https://prices.azure.com/api/retail/prices).
 
 Live smoke signs locally through the HTTPS preparation endpoint, verifies chain
 outcomes, restarts the revision, and checks readiness, state persistence, CORS and
-limits. Rollback is exercised when a previous successful image exists. Results
-and remaining limitations belong in [docs/VALIDATION.md](docs/VALIDATION.md).
+limits. Verification waits until the original replicas are gone before comparing
+inventory. `verify-azure` rechecks the saved 14 successful receipts and repeats
+these platform checks without replaying signed transactions. Rollback is exercised
+when a previous successful image exists. Results and remaining limitations belong
+in [docs/VALIDATION.md](docs/VALIDATION.md).
 
 Original app code is AGPL-3.0-only. Dependency licenses and source/tool pins are
 described in [docs/SOURCES.md](docs/SOURCES.md). Passing the demo checks does not

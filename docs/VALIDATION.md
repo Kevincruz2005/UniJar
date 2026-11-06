@@ -1,4 +1,4 @@
-# Local validation gate
+# Local and Azure validation
 
 Validated source: `008d267b85b6800b42b24d1a93731a72d722bfa7` (`local-validated-v1`).
 
@@ -27,20 +27,44 @@ commit identities, not those runtime files.
 
 ## Azure gate
 
-Azure deployment and HTTPS liveness/readiness/OpenAPI checks passed at
-`https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io`. Full transaction and restart validation is in progress; no full
-Azure smoke success is claimed yet.
-The registry, identity, logs workspace and environment were provisioned. The
-initial app attempt failed because the older API defaulted the environment to
-Express. Infrastructure now explicitly requests WorkloadProfiles with a
-Consumption profile using API 2026-07-01. The platform restoration can take
-15–30 minutes.
+The deployed backend passed HTTPS liveness, readiness and OpenAPI checks:
+[health](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/healthz),
+[readiness](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/readyz),
+and [OpenAPI](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/openapi.json).
 
-The earlier orchestration was cancelled at the user pause request. The platform
-restoration subsequently completed, and deployment resumed after local validation
-and history consolidation as authorized. The actual image digest, revision and
-URL are in `deployments/azure.json`; HTTPS transaction tests are still required.
+- Fourteen additional real Sepolia transactions were prepared through the Azure
+  HTTPS API and signed locally. Direct purchase, auction outbid/refund/settlement,
+  no-bid recovery, coherent reads and invalid request rejection passed.
+- `make verify-azure`: exit 0. The saved 14 receipts were reconfirmed without
+  replaying transactions. Original replicas were fully replaced before comparing
+  identical chain-derived inventory. Readiness, denied CORS origin, HTTP 413 for
+  oversized requests, HTTP 429 with exhausted quota headers, and sampled console
+  log credential checks passed.
+- Final recorded chain state has no active lot, bid liability or refund liability.
+- Rollback was not applicable because this is the first successful deployment.
+  Readiness passed within the bounded allowance; no scale-to-zero latency
+  measurement is claimed.
 
+The initial deployment wrapper completed its 14 transactions but reported a
+false negative in the rate-limit check because RPC reads slowed its request
+burst. The verifier now consumes response bodies and uses invalid-address
+requests that fail before RPC access. The original wrapper is not recorded as
+exit 0; the subsequent verifier passed.
+
+The environment is explicitly WorkloadProfiles with a Consumption profile using
+API 2026-07-01. Platform restoration completed before resuming the deployment.
+Verified runtime settings include HTTPS-only external ingress on port 8080,
+0–1 replicas, scoped registry-pull identity, disabled registry admin access and
+an RPC secret reference. Signing keys remain local.
+
+Image digest:
+`sha256:7aafbcb538f434464230d01dd1a4a913a833281f4e230619158110439a5456d0`.
+Revision: `unijar-api--r-62ab1501-7aafbcb5`.
+The runtime source remains the retained `deployment-source-62ab150` tag; later
+commits change verification tooling and documentation only. Actual deployment
+metadata is in [azure.json](../deployments/azure.json), and transaction hashes,
+replica identities, measured rate-limit evidence and verification timestamps are
+in [azure-smoke.json](../deployments/azure-smoke.json).
 
 ## Additional static review
 
