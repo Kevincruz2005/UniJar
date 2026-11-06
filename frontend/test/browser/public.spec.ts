@@ -47,3 +47,10 @@ test('wallet dialog is keyboard dismissible and unknown routes have a recovery l
   await expect(page.getByRole('dialog')).not.toBeVisible();
   await page.goto('/not-a-page'); await expect(page.getByRole('link', { name: 'Back to home' })).toBeVisible();
 });
+test('an inventory outage shows an error rather than fabricated zero balances', async ({ page }) => {
+  await page.route('**/v1/inventory', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'RPC_UNAVAILABLE' }) }));
+  await page.goto('/inventory');
+  await expect(page.getByText('Unable to load verified data.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('table')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible();
+});
