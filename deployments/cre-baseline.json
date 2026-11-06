@@ -1,0 +1,72 @@
+{
+  "baselineCommit": "33a0922768587ae4812881f6ca6e3af5a2f55a6e",
+  "checkpointTag": "pre-cre-settlement-20261106",
+  "live": {
+    "status": "passed",
+    "checkedAt": "2026-11-06T12:40:34.398Z",
+    "checks": [
+      {
+        "name": "frontend",
+        "status": "ok",
+        "version": "e95a8bbb520d74ab16570df3f1f40673aa802fc5",
+        "chainId": 11155111
+      },
+      {
+        "name": "api",
+        "status": "ok",
+        "version": "d82d9cc7cb83563c5c1887ed3591818056d246da",
+        "chainId": 11155111
+      }
+    ],
+    "chainId": 11155111,
+    "activeId": "0",
+    "releaser": "0x64af2a1567ce1f0ebc84144542b945655980381d",
+    "sourceCommit": "62ab1501d04a1febfc51042951c9480f9bfd786f",
+    "successfulReceiptCount": 40,
+    "block": "12076624",
+    "timestamp": "1793968824",
+    "baseFeePerGas": "17",
+    "suggestedGasPriceWei": "19",
+    "externalIdentityCheck": {
+      "source": "https://eth-sepolia.blockscout.com",
+      "height": 0,
+      "hash": "0x25a5cc106eea7138acab33231d7160d69cb777ee0c2c553fcddf5138993e6dd9",
+      "matchesSepoliaRpc": true
+    }
+  },
+  "localFrontend": {
+    "status": "passed",
+    "sourceCommit": "33a0922768587ae4812881f6ca6e3af5a2f55a6e",
+    "testedAt": "2026-11-06T12:51:13.398Z",
+    "typecheck": "passed",
+    "unitAndServerTests": "passed",
+    "productionBuild": "passed",
+    "publicProductionBrowserTests": 8,
+    "localWalletBrowserScenarios": 6,
+    "localWalletTransactions": 27,
+    "chainId": 31337,
+    "wallet": "Injected EIP-1193 test provider with encrypted signing outside the browser; real wallet extensions remain a manual check."
+  },
+  "localContainer": {
+    "sourceCommit": "33a0922768587ae4812881f6ca6e3af5a2f55a6e",
+    "verificationSourceCommit": "33a0922768587ae4812881f6ca6e3af5a2f55a6e",
+    "imageId": "sha256:472880761332797fbeefb01a2747047fd5f283ce1583b284a1c094d465502915",
+    "chainId": 31337,
+    "status": "passed",
+    "timestamp": "2026-11-06T12:29:18.547167+00:00"
+  },
+  "contractTests": 34,
+  "apiTransportQueueTests": 17,
+  "frontendUnitServerTests": 12,
+  "initialAttempt": {
+    "status": "failed",
+    "check": "Production-preview inventory read did not load within 40 seconds",
+    "codeChangedBeforePassingRerun": false,
+    "cause": "Unverified; subsequent live inventory read returned 200 in 4993ms"
+  },
+  "currentStatus": "passed for exercised flows",
+  "limitations": [
+    "Rabby and physical mobile devices unverified",
+    "No guarantee of uninterrupted external RPC or Azure availability"
+  ]
+}
