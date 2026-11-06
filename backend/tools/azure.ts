@@ -193,7 +193,9 @@ async function main() {
   run(resolve(root, 'backend/node_modules/.bin/tsx'), ['backend/tools/validate-manifest.ts'], { env: { ...process.env, CHAIN_ID: '11155111' } });
   // This local build/run gate precedes paid provisioning and image upload.
   if (!resuming) {
-  run('docker', ['build', '--network', 'host', '--no-cache', '-f', 'backend/Dockerfile', '-t', `unijar:${sourceCommit}`, '.'], { timeout: 600000, env: dockerEnv });
+  // The required local smoke already performs a clean build. Reuse identical
+  // dependency layers here; the packaged Sepolia manifest/build metadata still rebuild.
+  run('docker', ['build', '--network', 'host', '-f', 'backend/Dockerfile', '-t', `unijar:${sourceCommit}`, '.'], { timeout: 600000, env: dockerEnv });
   const envFile = resolve(root, '.local/container.env');
   writeFileSync(envFile, `RPC_URL=${process.env.SEPOLIA_RPC_URL}\nEXPECTED_CHAIN_ID=11155111\n`, { mode: 0o600 }); chmodSync(envFile, 0o600);
   try {
