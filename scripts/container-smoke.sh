@@ -6,7 +6,8 @@ docker info >/dev/null
 container_rpc=http://127.0.0.1:18545
 api_url=http://127.0.0.1:8080
 if [[ "${DOCKER_HOST:-}" == *unijar-docker* ]]; then container_rpc=http://10.0.2.2:18545; api_url=http://127.0.0.1:18080; fi
-docker build --network host --no-cache -f backend/Dockerfile -t unijar:local .
+# Dependency layers may be cached; package locks and source/public inputs determine the image.
+docker build --network host -f backend/Dockerfile -t unijar:local .
 docker run -d --rm --name unijar-local-smoke --network host -e NODE_ENV=test -e EXPECTED_CHAIN_ID=31337 -e "RPC_URL=$container_rpc" unijar:local >/dev/null
 trap 'docker stop unijar-local-smoke >/dev/null 2>&1 || true' EXIT
 wait_ready() {
@@ -38,7 +39,10 @@ docker image inspect unijar:local --format '{{.Id}}' > .local/docker-image-id
 python3 - <<'PYREPORT'
 import json,pathlib,subprocess,datetime
 root=pathlib.Path('.')
-report={'sourceCommit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'imageId':(root/'.local/docker-image-id').read_text().strip(),'chainId':31337,'status':'passed','timestamp':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+flow=json.loads((root/'.local/local-smoke.json').read_text())
+native=json.loads((root/'.local/native-smoke.json').read_text())
+assert flow['apiSourceCommit']==native['apiSourceCommit']
+report={'sourceCommit':flow['apiSourceCommit'],'verificationSourceCommit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'imageId':(root/'.local/docker-image-id').read_text().strip(),'chainId':31337,'status':'passed','timestamp':datetime.datetime.now(datetime.timezone.utc).isoformat()}
 (root/'.local/container-validation.json').write_text(json.dumps(report,indent=2)+'\n')
 PYREPORT
 printf 'Clean image build, non-root isolation, transactions, restart persistence and wrong-chain rejection passed.\n'

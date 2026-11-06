@@ -47,7 +47,8 @@ async function main() {
     } else while ((await client.getBlock()).timestamp < BigInt(expiry)) { console.log('Waiting for real lot expiry'); await new Promise(r => setTimeout(r, 15000)); }
   }
   try {
-    if (chainId === 11155111) {
+    {
+      // Refresh both chains: an idle Docker build can outlast the observation age.
       // Controlled fixture maintenance is signed locally and never added to the API allowlist.
       const fixtureAbi = artifact('oracle-contracts/out/LiquidityFixture.sol/LiquidityFixture.json').abi;
       const activity = await write(a.fixture, fixtureAbi, 'mint', [-887220, 887220, 1000000000n]); hashes.push(activity.transactionHash);
@@ -102,7 +103,7 @@ async function main() {
     await advance(noBidExpiry); await send('finalizeAuction', { id: noBidId }, 'buyer-a'); await send('recover', { id: noBidId }, 'buyer-b');
     assert.equal(await tokenBalance(a.auctionAsset, a.jar), jarBefore); assert.equal((await lot(noBidId)).state, 5);
     for (const payload of [{ action: 'unknown', sender: accounts.operator, params: {} }, { action: 'withdrawRefund', sender: accounts.operator, params: {}, to: accounts.treasury }]) assert.equal((await api('/v1/transactions/prepare', payload)).status, 400);
-    assert.equal(hashes.length, chainId === 31337 ? 15 : 16);
+    assert.equal(hashes.length, 16);
     const report = { chainId, apiSourceCommit, expectedTransactionCount: hashes.length, sourceCommit: manifest.sourceCommit, api: process.env.API_URL ?? 'local ephemeral HTTP API', passed: ['chain/config/code', 'block-tagged reads', 'direct bounds and sale', 'auction self-outbid/outbid/refund/settlement', 'permissionless no-bid recovery', 'invalid action/target', 'live metadata/policies/review inventory'], transactions: hashes, timestamp: new Date().toISOString() };
     writeFileSync(resolve(root, chainId === 31337 ? '.local/local-smoke.json' : process.env.API_URL ? 'deployments/azure-smoke.json' : 'deployments/sepolia-smoke.json'), json(report));
     console.log(json(report));
