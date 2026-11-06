@@ -1,0 +1,33 @@
+{
+  "name": "unijar-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "engines": { "node": ">=24 <25" },
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts",
+    "test:browser": "playwright test"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "5.106.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "viem": "2.57.16",
+    "wagmi": "3.7.11"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1",
+    "@types/node": "26.6.6",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.2.1",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vite": "8.3.6"
+  }
+}
