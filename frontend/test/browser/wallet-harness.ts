@@ -38,8 +38,10 @@ export async function refreshReference() {
 }
 export async function advanceTo(timestamp: bigint, page: Page) {
   if (local) {
-    await client.request({ method: 'evm_setNextBlockTimestamp' as never, params: [Number(timestamp)] as never });
-    await client.request({ method: 'evm_mine' as never, params: [] as never });
+    if ((await client.getBlock()).timestamp < timestamp) {
+      await client.request({ method: 'evm_setNextBlockTimestamp' as never, params: [Number(timestamp)] as never });
+      await client.request({ method: 'evm_mine' as never, params: [] as never });
+    }
     await syncClock(page);
   } else {
     while ((await client.getBlock()).timestamp < timestamp) await new Promise(r => setTimeout(r, 8000));

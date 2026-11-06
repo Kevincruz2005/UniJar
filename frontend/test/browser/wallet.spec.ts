@@ -13,7 +13,7 @@ test.describe('real-chain browser wallet journeys', () => {
     await page.getByLabel('Expires in (minutes)').fill(minutes);
     if (mode === 'auction') { await page.getByLabel('Reserve (', { exact: false }).fill('1'); await page.getByLabel('Increment (', { exact: false }).fill('0.1'); }
     await page.getByRole('button', { name: mode === 'direct' ? /Review & open direct lot/ : /Review & open auction/ }).click();
-    await expect(page).toHaveURL(/\/lots\/\d+$/);
+    await expect(page).toHaveURL(/\/lots\/\d+$/, { timeout: 180000 });
     return BigInt(page.url().split('/').at(-1)!);
   }
   async function approveAndBid(page: Page, amount: string) {

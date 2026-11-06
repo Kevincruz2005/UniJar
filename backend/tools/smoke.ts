@@ -46,8 +46,10 @@ async function main() {
   async function advance(expiry: number) {
     stage = 'wait/advance lot expiry';
     if (chainId === 31337) {
-      await client.request({ method: 'evm_setNextBlockTimestamp' as never, params: [expiry] as never });
-      await client.request({ method: 'evm_mine' as never, params: [] as never });
+      if ((await client.getBlock()).timestamp < BigInt(expiry)) {
+        await client.request({ method: 'evm_setNextBlockTimestamp' as never, params: [expiry] as never });
+        await client.request({ method: 'evm_mine' as never, params: [] as never });
+      }
     } else while ((await client.getBlock()).timestamp < BigInt(expiry)) { console.log('Waiting for real lot expiry'); await new Promise(r => setTimeout(r, 15000)); }
   }
   try {
