@@ -121,7 +121,8 @@ input:focus, select:focus, textarea:focus {
 }
 .site-footer .brand { font-size: 24px; }
 .site-footer .brand svg { width: 24px; height: 26px; }
-.footer-links { display: flex; gap: 28px; font: 500 11px/1.4 var(--font-mono); text-transform: uppercase; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 28px; font: 500 11px/1.4 var(--font-mono); text-transform: uppercase; }
+.footer-links a { white-space: nowrap; }
 .footer-links a:hover { color: var(--accent); }
 .footer-note { font-size: 13px; color: var(--muted); }
 .button {

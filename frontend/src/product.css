@@ -98,3 +98,10 @@ td { padding: 24px 20px; border-bottom: 1px solid var(--line); font-size: 15px; 
 .operator-form .docs-callout p { margin: 0; }
 .operator-policy .details-panel { margin-top: 36px; }
 .operator-policy .field { margin: 20px 0; }
+.status-checks .operator-admission { margin: 0; border-top: 0; }
+.status-checks { margin-bottom: 32px; }
+.button-row { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.button-row .inline-link { white-space: nowrap; }
+.operator-policy ol { padding-left: 24px; }
+.operator-policy li + li { margin-top: 12px; }
+.operator-form > .button + .button { margin-top: 12px; }
