@@ -55,3 +55,9 @@ both methods would require separately tested contract changes and deployment.
 RPC credentials remain in ignored local configuration and an Azure secret.
 Signing keys remain in local encrypted keystores/user wallets. The hosted API
 only reads and simulates allowlisted unsigned transactions.
+
+Azure rate limits use the validated rightmost address appended by managed ingress
+only when `INGRESS_MODE=azure` is enabled. Caller-supplied prefixes are ignored;
+other deployments default to socket addresses. Do not enable Azure ingress mode
+on a server exposed directly to arbitrary clients. See Microsoft's
+[ingress header contract](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview).
