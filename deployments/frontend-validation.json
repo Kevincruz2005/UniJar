@@ -1,0 +1,131 @@
+{
+  "frontend": "https://unijar-web.purplewater-5aec7560.centralindia.azurecontainerapps.io",
+  "api": "https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io",
+  "chainId": 11155111,
+  "frontendSourceCommit": "cbaab02c829cc983736bf577982e9043de1a870e",
+  "frontendImageDigest": "sha256:612b58e140174965c9bf7276d551e7aeb9b15d2ecc83e4ae2abd28c7cfe1bb9a",
+  "apiSourceCommit": "85039ec0993e23885c5036e03572c8ab6a692745",
+  "contractSourceCommit": "62ab1501d04a1febfc51042951c9480f9bfd786f",
+  "verifiedAt": "2026-11-06T08:20:49.186Z",
+  "local": {
+    "sourceCommit": "cbaab02c829cc983736bf577982e9043de1a870e",
+    "typecheck": "passed",
+    "productionBuild": "passed",
+    "unitAndServerTests": 9,
+    "publicBrowserTests": 6,
+    "walletScenarios": 5,
+    "confirmedTransactions": 20
+  },
+  "azure": {
+    "publicBrowserTests": 6,
+    "sepoliaWalletScenarios": 4,
+    "localOnlyScenario": "Stale reference via Anvil time advancement; no public-chain time manipulation.",
+    "https": "passed",
+    "apiReadiness": "passed",
+    "allowedOrigin": "passed",
+    "deniedOrigin": "passed",
+    "transactionPreflight": "passed",
+    "productionContainer": "Passed local deep route, health, build identity and UID 1000 checks before image publication."
+  },
+  "walletTestMethod": "Browser-injected EIP-1193 test provider; signing uses encrypted disposable keystores in the Node test process. No real MetaMask/Rabby extension test is claimed.",
+  "manualAcceptanceRemaining": [
+    "Actual MetaMask and Rabby browser extensions",
+    "Physical-device wallet browsers"
+  ],
+  "finalState": {
+    "block": "12075348",
+    "activeId": "0",
+    "bidLiability": "0",
+    "refundLiability": "0",
+    "paused": false,
+    "adopted": true,
+    "heldForReview": {
+      "asset": "0x2c7b6527e003d81a794d85e786fae2e58e103685",
+      "rawBalance": "25000000000000000000",
+      "decimals": 18
+    },
+    "inventoryIndependentlyVerifiedAtBlock": "12075348"
+  },
+  "transactions": [
+    {
+      "hash": "0xabf0801b3c1f2f5a0c0ba111d201fcb4b67752804ff2c31df7be0aeae36899e1",
+      "block": "12075314",
+      "status": "success"
+    },
+    {
+      "hash": "0x2a006dcfc411d4f2afeb21f14d9761174a4b99e6489f5ed5ace1123562c0fff1",
+      "block": "12075315",
+      "status": "success"
+    },
+    {
+      "hash": "0x4b944a7cf4e4649b8eb1879947e0a91b3c38472d4295ffdc05a3356fc0995e82",
+      "block": "12075316",
+      "status": "success"
+    },
+    {
+      "hash": "0xe20fd2e5a6c295943c93521c0e8bf458ec0e9c7738c7c2ecc80cb6ccab62400a",
+      "block": "12075317",
+      "status": "success"
+    },
+    {
+      "hash": "0x2c4391b429e71b3138d920683067c66b352c9a55bde1e436b7b6a3b91e39e6b4",
+      "block": "12075319",
+      "status": "success"
+    },
+    {
+      "hash": "0x6fe5c0e5fe83f7628904ef65744dbb60dfb0d6712a2f2cf9290475286e03da04",
+      "block": "12075320",
+      "status": "success"
+    },
+    {
+      "hash": "0x8bc2948ed3d879e46830a1cc17b60b98bfd2bf75a3fcdb17404fd5a65ebe5c76",
+      "block": "12075321",
+      "status": "success"
+    },
+    {
+      "hash": "0x5389bc4f745771e86e1f251032882b99a1b849337c15930824c141606e1f30df",
+      "block": "12075322",
+      "status": "success"
+    },
+    {
+      "hash": "0xc210a6129ea087b5d1803b27b6350afce6ce4c00c4a833a99ccec7259612564f",
+      "block": "12075323",
+      "status": "success"
+    },
+    {
+      "hash": "0x2014788c21de2153cbd4a2c08f93265866d2e16c137c1c8380194bb57b979bfa",
+      "block": "12075325",
+      "status": "success"
+    },
+    {
+      "hash": "0x56340154a79fd411963fcd05c733e20e4684806536d5f066ccb38c1ac89882de",
+      "block": "12075326",
+      "status": "success"
+    },
+    {
+      "hash": "0x77753c83fca55014ff50090d5c0d2c423f9982cbc4eaf06f9d30ae7e1947a5cd",
+      "block": "12075328",
+      "status": "success"
+    },
+    {
+      "hash": "0x350755575f2655954ab65533800bf33a4e317f7fc39ddb7a87f669abfa6c5835",
+      "block": "12075335",
+      "status": "success"
+    },
+    {
+      "hash": "0xe042e6226ed4daecaa71332332320ae0266a7dada8f27264be1cc51e1bef68e3",
+      "block": "12075336",
+      "status": "success"
+    },
+    {
+      "hash": "0xde88723fce3c4981abc23cead7b24af12cb032c2cd0445ea8536eb831d3f08db",
+      "block": "12075342",
+      "status": "success"
+    },
+    {
+      "hash": "0xbbf925b14c0231af0b38b2adfb43a875e21fd13d3e9f6e280f0238a9a5f4746d",
+      "block": "12075344",
+      "status": "success"
+    }
+  ]
+}
