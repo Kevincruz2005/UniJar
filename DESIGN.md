@@ -138,3 +138,10 @@ Max content width: **1428px**
 - Financial actions remain explicit: dark primary controls, a persistent top-right wallet button, separate approval/signing steps and textual status labels.
 - The pink collection artwork is original SVG. Decorative marquee content is hidden from assistive technology; reduced-motion preferences stop its animation.
 - Source architecture is a visual reference. UniJar retains its existing React/Vite application, testnet contracts and multipage navigation.
+
+## Enlarged side-pattern composition
+
+- The landing motif is now a full-height, edge-cropped field of original pink curves, matching the scale and placement of the supplied screenshot.
+- The desktop headline scales up to 120px; product headings scale to 76px and documentation titles to 72px.
+- The same curved motif appears in product-page heading rails, the documentation gutter and the footer. Reserved gutters keep it clear of text and controls.
+- On small screens the landing curves move below the primary actions. Documentation rails disappear to preserve the reading column; product rails reduce to a narrow edge treatment.
