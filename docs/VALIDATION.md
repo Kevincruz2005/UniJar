@@ -252,3 +252,34 @@ An API readiness 503 was observed after browser validation; follow-up health,
 readiness and config reads returned 200. This is retained as an operational
 observation rather than hidden by the visual release. Current source/image
 identity and results are in the frontend manifest and design-validation record.
+
+
+## Receipt service and API reliability release
+
+API source `d82d9cc7cb83563c5c1887ed3591818056d246da` adds bounded RPC
+pacing, shared in-flight reads and safe diagnostic categories. The original
+sale/oracle contracts are unchanged. The separate Sepolia receipt registry is
+`0xa3854b05c6bc2384c15917914cd1afc1ecf248b9`; its constructor terms and runtime
+hash are pinned in the Sepolia manifest, and its source match is recorded in
+[source-verification.json](../deployments/source-verification.json).
+
+Before publishing, 34 contract tests, 17 API/transport/queue tests and 12
+frontend/server tests passed. Eight production-page browser checks and six
+Anvil wallet scenarios passed, with 27 successful local transactions. The
+wallet suite holds configuration refresh open to verify prompt receipt
+confirmation/navigation while further writes stay locked. It also checks
+paid receipt collection, exact-lot sale, refunds/recovery and stale-price refusal.
+
+The production API container passed 16 local HTTP transactions after the
+native 16-transaction run, non-root/isolation checks, restart persistence and
+wrong-chain rejection. The new Azure image then passed 16 real Sepolia
+transactions through HTTPS, replacement-replica persistence, CORS, request-size
+and rate limits, log redaction, and rollback/restore. Current image and revision
+are in [azure.json](../deployments/azure.json); live evidence and hashes are in
+[azure-smoke.json](../deployments/azure-smoke.json).
+
+An HTTP 429 was observed from the configured provider before pacing was added.
+Historical Azure 503s lack enough diagnostics to attribute every failure to
+that cause. The new log categories preserve provider-credential privacy.
+Real MetaMask/Rabby extensions and physical devices remain manual acceptance
+items; the automated signing adapter is not represented as an extension test.

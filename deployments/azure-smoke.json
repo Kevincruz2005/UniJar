@@ -1,6 +1,6 @@
 {
   "chainId": 11155111,
-  "apiSourceCommit": "85039ec0993e23885c5036e03572c8ab6a692745",
+  "apiSourceCommit": "d82d9cc7cb83563c5c1887ed3591818056d246da",
   "expectedTransactionCount": 16,
   "sourceCommit": "62ab1501d04a1febfc51042951c9480f9bfd786f",
   "api": "https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io",
@@ -14,37 +14,28 @@
     "live metadata/policies/review inventory"
   ],
   "transactions": [
-    "0x2925ea2581b3f8a2ff66f159c5c4272a3478624bbaa7ac044a11b444cd098a43",
-    "0x7bd9aaa116e0fcd7b7f0f31414c71532e14dc8d1f4023d9cfa098ee511264218",
-    "0xfbb54e4cd4b38c04bdfe324f350b54edcf6eaed9914f6fb6220795bd68cfe9f8",
-    "0xcef2210cabeb5f48a1ff5567440e451a513e611907d10f4675d2dec67ddf3670",
-    "0x2dc2da1b19b088703b1176f8f4c99d7bf8584e0a12cff2b51f28bee16877a1b7",
-    "0x9f2c8057ebd7dee113768bcf5ddfac09652d7f4e6b0262b332dcd966593facc2",
-    "0x2148ad1452df5b9f311a340239f86951ba842d3348643f73e6c076db20d8e3e8",
-    "0x3708c683238c75309346066827371befc915b9d91b4a476673780584d99bdb13",
-    "0x2163ea8d40189f3f4d8e9e61df3c53159e4d1c924cd92bcc35dd8f988067655e",
-    "0x1a4e1bddb8556418519190e4bd004689464cba02ccba78baaf94f659bbb33982",
-    "0x532a8934a608c317a0eab9081eb2a5c102a10e6cc81d0674707d58d12c074a35",
-    "0x2a2be55c8254b263b35c876ca6cba1457975652f4f471c5c2be1f8ceb6746e09",
-    "0x88548b369b7ca9f614f1d8dad7b247ffadefa5ad3802a0c21eb387b56da5ea15",
-    "0xb73fed0c1f7f261a60f495f03cfa66e67f5a9749596e83c04ff2da62855fe2bf",
-    "0x38268fcdbce3aec840f3b2665a93f735ba87d05df56bbd82f5aebf545baa8d15",
-    "0x9c50880cebc152a0f8aedb001afa7809d5f5e819a56a93d8720d192bf0873f03"
+    "0xff91de20c7a294a9286d358f008670b040294a9b84ae8aafa2f9b3d436803e65",
+    "0xe586a3bbc50a8da668c16fc27370859668767e10f220b420c766791828789e47",
+    "0x51c11c9d202851b67f2de0b49827a2535275fe36e71ee31eee43ca010aebe0ef",
+    "0x2b744c06a670e22421b29fdf828d1c0ca42ad45f783f78d2f686d8b473ea8f3b",
+    "0x2bc31e024c132b548dab8f931206567b17605a970715992cc34da9b8a97177f0",
+    "0xe9612b87705a0fa6bb8b9c2141a0a52e61d7022841a6534f8c12cc849b2e6ff8",
+    "0x34b744b0a8a967a9f8b3a956af98bd7ae691910822e3e00e68198dda5392910a",
+    "0x75e9a70d8f35d6a556215d9ae2e0b55caf8cb7e0fce6a3d9bb0175e66f05bd85",
+    "0x3ec58a547347a41b4b97178e7a3df1809c2d22926859669c91c97820f1dc8a9a",
+    "0xb29afefdd7534c0a60602abd72dff36864acf4497e5369b2541dc5e508620261",
+    "0xd233a66ec3b34868b3caab07c5e10f69b02e175f2f3253c014becfc614850169",
+    "0x9d96f8997ca9d07f1488d8c5e012095790878aee3843d1db8e6e73fb6c93e2a3",
+    "0xfb43658ce323c7d34b8469434de33bf1b8763b83e70ff9d34ca9106fa0a3a2e6",
+    "0xa3e9445d6cc6d19fa9cc0380bd69b2fd2da5b5d61dd2e8cc8e2fa23f4ff2ee9a",
+    "0x43655b66236b75f04afcf5e5f9766a3dadf719b5c6e46ee738092b3c1cf96810",
+    "0xd142b85aebe20fa855f3bdf4b1b2fa564bfed67054aca152ebdf1ea8069282b2"
   ],
-  "timestamp": "2026-11-06T04:23:17.795Z",
-  "finalBlock": "12074203",
-  "finalState": {
-    "activeId": "0",
-    "bidLiability": "0",
-    "refundLiability": "0",
-    "directPayments": "4949515",
-    "treasuryPayoutBalance": "10749515",
-    "heldForReviewBalance": "25000000000000000000"
-  },
+  "timestamp": "2026-11-06T11:45:32.548Z",
   "restartEvidence": {
     "before": [
       {
-        "name": "unijar-api--r-85039ec0-00f8a39a-9dfb468bb-cl2p9",
+        "name": "unijar-api--r-d82d9cc7-2dc4d21e-6654f4fcc7-9sjz2",
         "containers": [
           {
             "name": "api",
@@ -56,7 +47,7 @@
     ],
     "after": [
       {
-        "name": "unijar-api--r-85039ec0-00f8a39a-95c5c79b8-mnjqr",
+        "name": "unijar-api--r-d82d9cc7-2dc4d21e-6d9b47479d-t7wqs",
         "containers": [
           {
             "name": "api",
@@ -68,21 +59,21 @@
     ]
   },
   "rateLimitEvidence": {
-    "requestCount": 118,
-    "elapsedMs": 9598,
+    "requestCount": 117,
+    "elapsedMs": 7674,
     "status": 429,
     "limit": "120",
     "variedUntrustedForwardedPrefixes": true
   },
   "rollbackEvidence": {
-    "image": "unijarc2ed52as6vxy6.azurecr.io/unijar@sha256:825739326ca9f331e06fb6b4777b7495d5be27b6a8b141d6d087bf368743d545",
-    "version": "eafc5c6827b43de64062406b4a00eff17cb6c6bc",
-    "checkedAt": "2026-11-06T04:26:28.904Z"
+    "image": "unijarc2ed52as6vxy6.azurecr.io/unijar@sha256:00f8a39aac4b8bf77fc040a9b4a420a3fa0b809a2595ee6be81202d76a29dcd0",
+    "version": "85039ec0993e23885c5036e03572c8ab6a692745",
+    "checkedAt": "2026-11-06T11:47:51.562Z"
   },
-  "verificationCommand": "make deploy-azure",
-  "verificationSourceCommit": "5173ac15a50ce131bee483e9d90c7e8e759d20c8",
+  "verificationCommand": "make deploy-azure / make smoke-azure",
+  "verificationSourceCommit": "d82d9cc7cb83563c5c1887ed3591818056d246da",
   "verificationExitCode": 0,
-  "verifiedAt": "2026-11-06T04:27:30.916Z",
+  "verifiedAt": "2026-11-06T11:48:42.916Z",
   "azureChecks": {
     "restartPersistence": "passed",
     "cors": "passed",
@@ -91,18 +82,5 @@
     "logRedaction": "passed",
     "rollback": "passed",
     "coldStartReadiness": "passed within bounded readiness allowance"
-  },
-  "runtimeConfiguration": {
-    "allowInsecure": false,
-    "ingressMode": [
-      "azure"
-    ],
-    "maxReplicas": 1,
-    "minReplicas": 0,
-    "registryIdentity": "/subscriptions/3207de1c-c619-4e20-bd21-90461932b9ce/resourceGroups/unijar-demo-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/unijar-pull",
-    "revision": "unijar-api--restore-1793939188904",
-    "rpcSecretRef": [
-      "sepolia-rpc"
-    ]
   }
 }
