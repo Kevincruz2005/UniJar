@@ -54,3 +54,18 @@ test('an inventory outage shows an error rather than fabricated zero balances', 
   await expect(page.getByRole('table')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible();
 });
+
+test('status distinguishes process liveness from failed chain readiness', async ({ page }) => {
+  await page.route('**/healthz', route => route.fulfill({ json: { status: 'ok', version: 'backend-test-build', chainId: 11155111 } }));
+  await page.route('**/readyz', route => route.fulfill({ status: 503, json: { error: 'CODE_MISMATCH' } }));
+  await page.route('**/v1/config', route => route.fulfill({ status: 503, json: { error: 'RPC_UNAVAILABLE' } }));
+  await page.goto('/status');
+  await expect(page.getByRole('heading', { name: 'Know what’s available.' })).toBeVisible();
+  const checks = page.getByRole('region', { name: 'Service checks' });
+  await expect(checks.getByText('Reachable', { exact: true })).toBeVisible();
+  await expect(checks.getByText('Unavailable', { exact: true })).toHaveCount(2);
+  await expect(checks.getByText('Verified', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('backend-test-build', { exact: true })).toBeVisible();
+  await expect(page.locator('main').getByRole('link', { name: 'My funds' })).toBeVisible();
+  await expect(page.locator('main').getByRole('link', { name: 'Lot lifecycle actions' })).toBeVisible();
+});

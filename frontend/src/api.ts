@@ -1,13 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { validateConfig, type Config, type Envelope, type Inventory, type Lot, type Credits, type Quote } from './domain';
+import { request } from './request';
 export const deployment = __DEPLOYMENT__;
 export const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
 if (import.meta.env.PROD && apiBase !== '/api' && !apiBase.startsWith('https://')) throw new Error('Public API must use HTTPS.');
 export async function api<T>(path: string, body?: unknown, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(`${apiBase}${path}`, { signal: signal ?? AbortSignal.timeout(25000), method: body ? 'POST' : 'GET', headers: body ? { 'content-type': 'application/json' } : undefined, body: body ? JSON.stringify(body) : undefined });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error ?? 'Unable to load chain data.');
-  return data as T;
+  return request<T>(`${apiBase}${path}`, body, signal);
 }
 export const useConfig = () => useQuery({ queryKey: ['config'], queryFn: async ({ signal }) => { const r = await api<Envelope<Config>>('/v1/config', undefined, signal); validateConfig(r.data, deployment); return r; }, staleTime: 30000, refetchInterval: 45000, retry: 1 });
 export const useInventory = () => useQuery({ queryKey: ['inventory'], queryFn: ({ signal }) => api<Envelope<Inventory[]>>('/v1/inventory', undefined, signal), staleTime: 30000, refetchInterval: 45000, retry: 1 });

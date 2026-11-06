@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 export default defineConfig(({ mode }) => {
   const env = { ...loadEnv(mode, process.cwd(), ''), ...process.env };
@@ -13,7 +14,7 @@ export default defineConfig(({ mode }) => {
   const proxy = { '/api': { target: env.API_PROXY_TARGET ?? 'https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io', changeOrigin: true, rewrite: (path: string) => path.replace(/^\/api/, '') } };
   return {
     plugins: [react()],
-    define: { __DEPLOYMENT__: JSON.stringify({ chainId, sourceCommit, addresses, deployments }) },
+    define: { __DEPLOYMENT__: JSON.stringify({ chainId, sourceCommit, addresses, deployments }), __BUILD_SHA__: JSON.stringify(execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()) },
     server: { port: 5173, strictPort: true, proxy },
     preview: { port: 4173, strictPort: true, proxy },
     build: { sourcemap: false },

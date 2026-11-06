@@ -105,6 +105,8 @@ const reasons: Record<string, string> = {
   EXCESSIVE_DEVIATION: 'The current price has moved too far from the time-weighted reference.',
   ADMISSION_PAUSED: 'New purchases and bids are paused. Existing refunds and permitted exits remain available.',
   LOT_CLOSED: 'This lot is closed or has expired.', WRONG_STATE: 'This action is no longer available. Refresh the lot.',
+  CODE_MISMATCH: 'Deployed contract code does not match the verified deployment. Transactions are disabled.',
+  CHAIN_MISMATCH: 'The API reached an unexpected network. Transactions are disabled.',
   RPC_UNAVAILABLE: 'Chain data is temporarily unavailable. Try again shortly.', RATE_LIMITED: 'Too many requests. Please wait a minute before refreshing.',
   POLICY_MISMATCH: 'The frozen policy does not match this quote. Refresh before signing.',
   MAXIMUM_EXCEEDED: 'The current price exceeds your maximum payment. Review a fresh quote.',
