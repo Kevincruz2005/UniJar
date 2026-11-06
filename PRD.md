@@ -84,7 +84,7 @@ Do **not** interpret seeing an operator button in the UI as granting operator au
 
 ### 3.1 Explicit asset classification
 
-The operator assigns each **configured token address** one or both permitted sale methods; unsupported assets remain held for review.
+The operator assigns each **configured token address** exactly one current sale method (`DirectApproved` or `AuctionApproved`); unsupported assets remain held for review.
 
 | Classification | Allowed action | If unavailable |
 |---|---|---|
@@ -92,7 +92,7 @@ The operator assigns each **configured token address** one or both permitted sal
 | `AuctionApproved` | Open funded English-auction lot under explicit reserve/increment/expiry | No-bid lot becomes unsold/recoverable |
 | `HeldForReview` | Display configured jar balance and caution/explanation | **No** new sale or automatic movement |
 
-A token can be approved for both sale methods, **but the operator chooses one mode at lot creation**. A failed direct quote must **never silently switch** to auction, change price/reserve or move inventory. To use another permitted mode, close/recover the original lot first and open a **new** lot. Removing future approval must not erase existing bidder credits or enable confiscation. “Held for review” means configured addresses only: TokenJar does not supply an automatically enumerable list of every token ever deposited.
+The deployed immutable MVP stores one exclusive mode per asset; simultaneous dual approval is outside this deployment. The operator may update the future mode after closing and recovering an existing lot. A failed direct quote must **never silently switch** to auction, change price/reserve or move inventory. To use another permitted mode, close/recover the original lot first and open a **new** lot. Removing future approval must not erase existing bidder credits or enable confiscation. “Held for review” means configured addresses only: TokenJar does not supply an automatically enumerable list of every token ever deposited.
 
 ## 4. Core objects and lifecycle
 
@@ -158,7 +158,7 @@ Differentiate jar inventory, lot escrow, winning bid liability, credited refunds
 
 **Surface:** `/operator/new-lot` or modal in `/operator`.
 
-- Select a configured sale-approved asset and explicitly choose `Direct` or `Auction` based on its permission; validate mode and active-lot status.
+- Select a configured sale-approved asset; show its current exclusive `Direct` or `Auction` mode and validate active-lot status. Changing the future mode is a separate operator transaction.
 - Display current TokenJar inventory, required quantity, exact token units, immutable destination, expiry and frozen terms before wallet confirmation.
 - Onchain intake verifies current adoption, pulls the jar's full selected-asset balance as necessary for the real releaser integration, retains exactly the committed quantity, returns observed excess to the **same jar** atomically, and excludes pre-existing donations from lot accounting.
 - Support positive quantities within approved bounds; never treat a future jar deposit as additional committed inventory.
