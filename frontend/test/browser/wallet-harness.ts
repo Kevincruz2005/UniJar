@@ -57,7 +57,7 @@ export async function installWallet(page: Page, initial = 'operator') {
     try {
       if (payload.method === 'eth_sendTransaction') {
         const tx = payload.params[0];
-        if (![manifest.addresses.releaser, manifest.addresses.payout].some(a => a.toLowerCase() === tx.to?.toLowerCase()) || BigInt(tx.value ?? '0x0') !== 0n) throw new Error('Test wallet refuses unexpected target or native value.');
+        if (![manifest.addresses.releaser, manifest.addresses.payout, manifest.addresses.auctionAsset, manifest.addresses.feeSource].filter(Boolean).some(a => a.toLowerCase() === tx.to?.toLowerCase()) || BigInt(tx.value ?? '0x0') !== 0n) throw new Error('Test wallet refuses unexpected target or native value.');
         const alias = Object.entries(accounts).find(([, address]) => address.toLowerCase() === tx.from?.toLowerCase())?.[0];
         if (!alias) throw new Error('Unknown signer.');
         const result = await sign(tx.data, tx.to, alias); submitted.push(result); return { result };
@@ -117,4 +117,11 @@ export async function transact(page: Page, label: RegExp) {
 export async function saveEvidence(baseURL: string) {
   const receipts = await Promise.all(hashes.map(async hash => { const r = await client.getTransactionReceipt({ hash }); if (r.status !== 'success') throw new Error('A recorded transaction reverted.'); return { hash, block: r.blockNumber.toString(), status: r.status }; }));
   writeFileSync(resolve(root, `.local/frontend-wallet-${network}.json`), JSON.stringify({ network, chainId, url: baseURL, sourceCommit: manifest.sourceCommit, testedAt: new Date().toISOString(), wallet: 'Browser-injected EIP-1193 test provider; signing uses encrypted disposable keystores in the Node test process. No real MetaMask/Rabby extension test is claimed.', transactions: receipts }, null, 2) + '\n');
+}
+
+export async function fundReceiptPayment() {
+  const { encodeFunctionData } = await import('viem');
+  const artifact = JSON.parse(readFileSync(resolve(root, 'contracts/out/FixtureToken.sol/FixtureToken.json'), 'utf8'));
+  const hash = await sign(encodeFunctionData({ abi: artifact.abi, functionName: 'mint', args: [accounts['buyer-a'], BigInt(manifest.feeSource.price)] }), manifest.feeSource.asset, 'operator');
+  await client.waitForTransactionReceipt({ hash, timeout: 180000 });
 }

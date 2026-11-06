@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { network, chainId, accounts, client, manifest, readSale, balance, installWallet, connect, selectWallet, transact, advanceTo, syncClock, refreshReference, saveEvidence } from './wallet-harness';
+import { network, chainId, accounts, client, manifest, readSale, balance, installWallet, connect, selectWallet, transact, advanceTo, syncClock, refreshReference, saveEvidence, fundReceiptPayment } from './wallet-harness';
 
 test.describe('real-chain browser wallet journeys', () => {
   test.skip(!network, 'Set WALLET_TEST_NETWORK=local or sepolia explicitly.');
@@ -93,6 +93,41 @@ test.describe('real-chain browser wallet journeys', () => {
     await advanceTo(lot.expiry + 1n, page); await page.goto(`/lots/${id}`);
     await transact(page, /Finalize auction/); await transact(page, /Recover exact inventory/);
     expect(await balance(manifest.addresses.auctionAsset, manifest.addresses.jar)).toBe(jarBefore);
+    expect(await readSale('activeId')).toBe(0n);
+  });
+  test('a paid receipt generates jar fees which sell through to the treasury', async ({ page }) => {
+    await fundReceiptPayment();
+    const feeAbi = [{ type: 'function', name: 'totalFees', stateMutability: 'view', inputs: [], outputs: [{ type: 'uint256' }] }] as const;
+    const source = manifest.addresses.feeSource;
+    const asset = manifest.feeSource.asset;
+    const price = BigInt(manifest.feeSource.price);
+    const fee = price * BigInt(manifest.feeSource.feeBps) / 10000n;
+    const jarBefore = await balance(asset, manifest.addresses.jar);
+    const merchantBefore = await balance(asset, manifest.feeSource.merchant);
+    const payerBefore = await balance(asset, accounts['buyer-a']!);
+    const feesBefore = await client.readContract({ address: source, abi: feeAbi, functionName: 'totalFees' });
+    await installWallet(page, 'buyer-a'); await page.goto('/fees'); await connect(page);
+    await page.getByLabel('Receipt reference').fill(`acceptance-${chainId}-${await client.getBlockNumber()}`);
+    await transact(page, /1\. Approve exact service payment/);
+    await transact(page, /2\. Pay & register receipt/);
+    await expect(page.getByText(/is registered for this reference/)).toBeVisible();
+    await expect(page.getByRole('button', { name: /Pay & register/ })).toHaveCount(0);
+    expect(await balance(asset, manifest.addresses.jar)).toBe(jarBefore + fee);
+    expect(await balance(asset, manifest.feeSource.merchant)).toBe(merchantBefore + price - fee);
+    expect(await balance(asset, accounts['buyer-a']!)).toBe(payerBefore - price);
+    expect(await balance(asset, source)).toBe(0n);
+    expect(await client.readContract({ address: source, abi: feeAbi, functionName: 'totalFees' })).toBe(feesBefore + fee);
+    await selectWallet(page, 'operator'); const id = await open(page, 'auction', '1');
+    expect(await balance(asset, manifest.addresses.jar)).toBe(jarBefore);
+    await selectWallet(page, 'buyer-b'); await approveAndBid(page, '1');
+    const lot = await readSale('getLot', [id]) as { expiry: bigint };
+    const treasuryBefore = await balance(manifest.addresses.payout, accounts.treasury!);
+    const buyerBefore = await balance(asset, accounts['buyer-b']!);
+    await advanceTo(lot.expiry + 1n, page); await page.goto(`/lots/${id}`);
+    await transact(page, /Finalize auction/);
+    expect(await balance(manifest.addresses.payout, accounts.treasury!)).toBe(treasuryBefore + 1000000n);
+    expect(await balance(asset, accounts['buyer-b']!)).toBe(buyerBefore + fee);
+    expect(await balance(asset, manifest.addresses.jar)).toBe(jarBefore);
     expect(await readSale('activeId')).toBe(0n);
   });
   test('a stale direct reference shows refusal without auction fallback', async ({ page }) => {
