@@ -1,0 +1,13 @@
+{
+  "url": "https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io",
+  "resourceGroup": "unijar-demo-rg",
+  "subscription": "3207de1c-c619-4e20-bd21-90461932b9ce",
+  "resourceId": "/subscriptions/3207de1c-c619-4e20-bd21-90461932b9ce/resourceGroups/unijar-demo-rg/providers/Microsoft.App/containerapps/unijar-api",
+  "location": "centralindia",
+  "sourceCommit": "62ab1501d04a1febfc51042951c9480f9bfd786f",
+  "imageDigest": "sha256:7aafbcb538f434464230d01dd1a4a913a833281f4e230619158110439a5456d0",
+  "image": "unijarc2ed52as6vxy6.azurecr.io/unijar@sha256:7aafbcb538f434464230d01dd1a4a913a833281f4e230619158110439a5456d0",
+  "revision": "unijar-api--r-62ab1501-7aafbcb5",
+  "timestamp": "2026-11-06T01:47:41.306Z",
+  "previous": null
+}

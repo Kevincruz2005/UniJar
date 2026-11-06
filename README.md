@@ -12,7 +12,7 @@ The authoritative scope and acceptance requirements are [START.md](START.md),
 
 1. Local application and Docker validation passed at `local-validated-v1` (`008d267`): 27 contract tests, six API tests, and 26 confirmed local transactions.
 2. Existing Sepolia fixtures and 14 successful smoke transactions are recorded separately in `deployments/`.
-3. Azure verification remains pending. Its deployment orchestration was cancelled during environment restoration; resumption is authorized after the local gate and history consolidation.
+3. Azure is deployed at `https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io`. HTTPS liveness, readiness and OpenAPI checks passed; the full transaction and restart smoke gate is in progress.
 
 The main history was consolidated into substantial local-to-cloud milestones at
 the user's request. Original history is retained on

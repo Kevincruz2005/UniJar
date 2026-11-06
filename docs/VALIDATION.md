@@ -27,17 +27,19 @@ commit identities, not those runtime files.
 
 ## Azure gate
 
-Azure live verification has not passed and no deployed API URL is claimed.
+Azure deployment and HTTPS liveness/readiness/OpenAPI checks passed at
+`https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io`. Full transaction and restart validation is in progress; no full
+Azure smoke success is claimed yet.
 The registry, identity, logs workspace and environment were provisioned. The
 initial app attempt failed because the older API defaulted the environment to
 Express. Infrastructure now explicitly requests WorkloadProfiles with a
 Consumption profile using API 2026-07-01. The platform restoration can take
 15–30 minutes.
 
-Deployment orchestration was cancelled at the user's pause request. The saved
-cloud snapshot is `deployments/azure-progress.json`; an in-flight platform update
-may finish independently. Resuming Azure is authorized after this local gate and
-the history consolidation, with HTTPS transaction tests still required.
+The earlier orchestration was cancelled at the user pause request. The platform
+restoration subsequently completed, and deployment resumed after local validation
+and history consolidation as authorized. The actual image digest, revision and
+URL are in `deployments/azure.json`; HTTPS transaction tests are still required.
 
 
 ## Additional static review
