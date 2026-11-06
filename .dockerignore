@@ -1,5 +1,6 @@
 **
 !backend/
+backend/**
 !backend/Dockerfile
 !backend/package.json
 !backend/package-lock.json
