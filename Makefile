@@ -4,6 +4,7 @@ bootstrap:
 	bash scripts/bootstrap.sh
 	npm ci --prefix backend
 contracts:
+	.tools/forge test --root cre-contracts -vv
 	.tools/forge test --root fee-contracts -vv
 	.tools/forge build --root oracle-contracts
 	.tools/forge test --root contracts -vv
