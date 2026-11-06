@@ -1,70 +1,72 @@
-# Local and Azure validation
+# Local, Sepolia and Azure validation
 
-Validated source: `008d267b85b6800b42b24d1a93731a72d722bfa7` (`local-validated-v1`).
+## Local application and container
 
-`make container-smoke` completed with exit code 0 after the history rewrite:
+Validated API source: `a0c0c37949b280309416dbc435e331f547299806` (`local-backend-v2`).
+`make container-smoke` completed with exit code 0:
 
-- 27 contract tests and six API tests passed.
+- 27 contract tests and 11 API tests passed; TypeScript checks and build passed.
 - Fuzz tests ran 256 cases each; the independent ledger checked 128 runs and 8,192 actions.
-- Native and Docker APIs each prepared 13 locally signed transactions; receipts, balances, refunds, settlement and recovery were checked.
-- The clean image ran as UID 1000, survived restart with identical chain-derived inventory, and rejected wrong-chain configuration.
+- Native and Docker APIs each completed 16 signed Anvil transactions, including
+  self-outbid/outbid credits, refunds, settlement, recovery and real pool activity.
+- Metadata, modes, held-for-review inventory and balances matched block-tagged
+  independent reads. Integer amounts remained decimal strings.
+- The image ran as UID 1000, excluded development/secrets/source trees, survived
+  restart with identical chain-derived inventory and rejected wrong-chain startup.
+- Client-quota tests cover Azure's appended address, changing spoofed prefixes,
+  separate real clients and direct-server rejection of forwarded identity.
 
-Image: `sha256:f8112381947e32ad11cb556fe26323425ad7bd8c931709def9c85054f9d94feb`. Detailed compact evidence is in
-[local-validation.json](../deployments/local-validation.json). These are ephemeral
-Anvil transactions, not public-chain deployments.
+Image: `sha256:e43b077c96234921599ebe9b9902feecb1c63745d3b7d68206cddcbff77a14c2`. Evidence is in
+[local-validation.json](../deployments/local-validation.json). These transactions
+are isolated Anvil activity, not public deployments.
+
+A slow initial clean dependency build exceeded the oracle's freshness bound;
+the subsequent purchase correctly refused `STALE_OBSERVATION`. Smoke setup now
+refreshes both local and Sepolia pools through signed in-range liquidity mints.
+The passing rerun reused identical dependency layers and repackaged current inputs.
+It did not weaken the freshness check or use a fixed substitute price.
 
 ## Public-chain evidence
 
-The original deployed source is `62ab1501d04a1febfc51042951c9480f9bfd786f`,
-retained by `deployment-source-62ab150`. Contract/API sources and compiler/package
-configuration are byte-identical to that source; history consolidation changes
-commit identities, not those runtime files.
+Original contract source: `62ab1501d04a1febfc51042951c9480f9bfd786f`, retained by
+`deployment-source-62ab150`. Existing TokenJar, sale, reader and pool contracts
+were preserved. API versions have advanced separately; manifests retain the
+original contract-source SHA, and images/health responses identify the API build.
 
-- `make deploy-sepolia`: exit 0; full real 1,801-second oracle history and fresh in-range activity verified.
-- Fourteen genuine Sepolia transactions passed direct-sale bounds, payment/delivery, auction outbid/refund/settlement and no-bid recovery checks.
-- Nine contracts have confirmed Sourcify source matches.
-- Evidence: `deployments/sepolia.json`, `deployments/sepolia-smoke.json`, and `deployments/source-verification.json`.
+- Initial `make deploy-sepolia`: exit 0, with a genuine 1,801-second lookback.
+- `make review-asset`: exit 0; a restricted test ERC-20 was deployed and 25 tokens
+  minted to the original jar. Its onchain mode is disabled/HeldForReview.
+- Extended Sepolia smoke: exit 0; 16 confirmed transactions including direct
+  purchase, rejected buyer maximum, self-outbid/outbid, refund withdrawal,
+  settlement and permissionless no-bid recovery. API build tested:
+  `aa078773371cdf668c390f25f6322c3a4f0bfb6a`.
+- `make verify-sources`: exit 0; all ten configured contracts have confirmed
+  Sourcify matches. No mainnet or official Uniswap deployment address is claimed.
+- Recorded final state has no active lot, bid liability or refund liability.
 
-## Azure gate
+Evidence: [manifest](../deployments/sepolia.json),
+[smoke receipts](../deployments/sepolia-smoke.json), and
+[source verification](../deployments/source-verification.json).
 
-The deployed backend passed HTTPS liveness, readiness and OpenAPI checks:
-[health](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/healthz),
+## Azure release gate
+
+The new API image is deployed and Sepolia readiness passed. Its HTTPS transaction
+and platform checks are still running; full success is not yet claimed for this
+revision. Deployment metadata is in [azure.json](../deployments/azure.json), and
+[azure-progress.json](../deployments/azure-progress.json) identifies the pending gate.
+The previously completed 16-transaction HTTPS record remains in
+[azure-smoke.json](../deployments/azure-smoke.json) until replaced by the new run.
+
+Live [health](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/healthz),
 [readiness](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/readyz),
 and [OpenAPI](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/openapi.json).
 
-- Fourteen additional real Sepolia transactions were prepared through the Azure
-  HTTPS API and signed locally. Direct purchase, auction outbid/refund/settlement,
-  no-bid recovery, coherent reads and invalid request rejection passed.
-- `make verify-azure`: exit 0. The saved 14 receipts were reconfirmed without
-  replaying transactions. Original replicas were fully replaced before comparing
-  identical chain-derived inventory. Readiness, denied CORS origin, HTTP 413 for
-  oversized requests, HTTP 429 with exhausted quota headers, and sampled console
-  log credential checks passed.
-- Final recorded chain state has no active lot, bid liability or refund liability.
-- Rollback was not applicable because this is the first successful deployment.
-  Readiness passed within the bounded allowance; no scale-to-zero latency
-  measurement is claimed.
-
-The initial deployment wrapper completed its 14 transactions but reported a
-false negative in the rate-limit check because RPC reads slowed its request
-burst. The verifier now consumes response bodies and uses invalid-address
-requests that fail before RPC access. The original wrapper is not recorded as
-exit 0; the subsequent verifier passed.
-
-The environment is explicitly WorkloadProfiles with a Consumption profile using
-API 2026-07-01. Platform restoration completed before resuming the deployment.
-Verified runtime settings include HTTPS-only external ingress on port 8080,
-0–1 replicas, scoped registry-pull identity, disabled registry admin access and
-an RPC secret reference. Signing keys remain local.
-
-Image digest:
-`sha256:7aafbcb538f434464230d01dd1a4a913a833281f4e230619158110439a5456d0`.
-Revision: `unijar-api--r-62ab1501-7aafbcb5`.
-The runtime source remains the retained `deployment-source-62ab150` tag; later
-commits change verification tooling and documentation only. Actual deployment
-metadata is in [azure.json](../deployments/azure.json), and transaction hashes,
-replica identities, measured rate-limit evidence and verification timestamps are
-in [azure-smoke.json](../deployments/azure-smoke.json).
+The preceding release completed transactions but failed its rate-limit check.
+Live headers showed alternating ingress-proxy counters. Explicit Azure ingress
+mode now uses only the validated rightmost address appended by the platform;
+caller-controlled prefixes cannot select a different quota. The new release must
+pass that live test plus restart persistence, CORS, request limits, log redaction
+and rollback before the gate is complete. Historical passing records remain in Git.
 
 ## Additional static review
 
