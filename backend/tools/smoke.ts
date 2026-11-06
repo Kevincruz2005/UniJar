@@ -86,7 +86,7 @@ async function main() {
     const before = await tokenBalance(a.payout, accounts.treasury!); const inventoryBefore = await tokenBalance(a.directAsset, accounts['buyer-a']!);
     await send('fillDirect', { ...bounds, maximum: payment.toString() }, 'buyer-a');
     assert.equal(await tokenBalance(a.payout, accounts.treasury!), before + payment); assert.equal(await tokenBalance(a.directAsset, accounts['buyer-a']!), inventoryBefore + 10n ** 18n); assert.equal((await lot(directId)).state, 2);
-    const auctionId = String(await read(a.releaser, abis.sale, 'nextId')); const expiry = await timestamp() + (chainId === 31337 ? 300 : 300);
+    const auctionId = String(await read(a.releaser, abis.sale, 'nextId')); const expiry = await timestamp() + 300;
     await send('openAuction', { asset: a.auctionAsset, quantity: '1000000000000000000', expiry: String(expiry), reserve: '1000000', increment: '100000' });
     await send('approvePayout', { id: auctionId, amount: '1000000' }, 'buyer-a');
     await send('bid', { id: auctionId, amount: '1000000', recipient: accounts['buyer-a'] }, 'buyer-a');

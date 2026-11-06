@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-import { createPublicClient, http, type Abi, type Address, type Hex } from 'viem';
+import { createPublicClient, encodeFunctionData, http, type Abi, type Address, type Hex } from 'viem';
 import { rpcQueue } from './rpc-queue.js';
 
 export interface Gateway {
@@ -16,13 +16,21 @@ export function rpcGateway(url: string, options: { requestsPerSecond?: number } 
   // Batch JSON-RPC reads without relying on a Multicall deployment. Every call
   // retains its explicit block. Only reads/simulations are exposed by Gateway.
   const schedule = rpcQueue(options.requestsPerSecond);
+  const pendingReads = new Map<string, Promise<unknown>>();
   const client = createPublicClient({ transport: http(url, { batch: { batchSize: 20, wait: 5 }, timeout: 8000, retryCount: 1, retryDelay: 1000 }), batch: { multicall: false } });
   return {
     chainId: () => schedule(() => client.getChainId(), true),
     blockNumber: () => schedule(() => client.getBlockNumber({ cacheTime: 0 }), true),
     timestamp: blockNumber => schedule(async () => (await client.getBlock({ blockNumber })).timestamp),
     code: (address, blockNumber) => schedule(() => client.getCode({ address, blockNumber }), true),
-    read: (address, abi, functionName, args, blockNumber) => schedule(() => client.readContract({ address, abi, functionName, args, blockNumber })),
+    read: (address, abi, functionName, args, blockNumber) => {
+      const key = `${address.toLowerCase()}:${blockNumber}:${encodeFunctionData({ abi, functionName, args })}:${JSON.stringify(abi)}`;
+      const pending = pendingReads.get(key);
+      if (pending) return pending;
+      // Share only work still in flight; never reuse a completed/stale result.
+      const result = schedule(() => client.readContract({ address, abi, functionName, args, blockNumber })).finally(() => pendingReads.delete(key));
+      pendingReads.set(key, result); return result;
+    },
     simulate: (address, abi, functionName, args, account, blockNumber) => schedule(async () => { await client.simulateContract({ address, abi, functionName, args, account, blockNumber }); }),
   };
 }
