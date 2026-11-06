@@ -250,8 +250,13 @@ Sepolia manifest. Local fixture scripts deploy an independent Anvil instance.
 adoption and admission state independently. It retains links to credits and lot
 lifecycle actions during failures. RPC transport batches block-pinned JSON-RPC
 reads in groups of at most 20 and retries transient failures once, with an
-8-second per-attempt timeout. Failure logs contain only a category, route
+8-second per-attempt timeout. A shared bounded queue starts at most four calls
+per half-second by default (eight calls/second); production
+`RPC_REQUESTS_PER_SECOND` accepts an explicit rate from 1 to 20. Up to 128
+waiting calls are retained; overload fails honestly rather than growing an
+unbounded queue. Failure logs contain only a category, route
 template and request ID; provider URLs, RPC messages and request bodies are
 excluded. The browser applies a 25-second deadline even when a query supplies
-its own cancellation signal. The past intermittent Azure 503s were not
-reproduced in the recent log sample; their historical root cause is unproven.
+its own cancellation signal. An HTTP 429 was observed from the configured provider during a burst of Sepolia
+reads. The past Azure 503s lack detailed historical diagnostics, so that
+observation does not establish the cause of every earlier failure.
