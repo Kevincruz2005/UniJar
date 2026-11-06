@@ -37,3 +37,15 @@ verify-azure:
 	bash scripts/azure.sh verify
 review-asset:
 	CHAIN_ID=11155111 backend/node_modules/.bin/tsx backend/tools/review-asset.ts
+
+.PHONY: web-dev web-check web-browser deploy-web
+web-dev:
+	npm --prefix frontend run dev
+web-check:
+	npm --prefix frontend run typecheck
+	npm --prefix frontend test
+	npm --prefix frontend run build
+web-browser:
+	npm --prefix frontend run test:browser -- public.spec.ts
+deploy-web:
+	npm --prefix frontend run deploy:azure
