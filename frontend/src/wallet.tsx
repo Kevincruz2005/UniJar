@@ -45,12 +45,12 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       const confirmed = await reader.getTransaction({ hash });
       if (confirmed.from.toLowerCase() !== sender.toLowerCase() || confirmed.to?.toLowerCase() !== prepared.to.toLowerCase() || confirmed.input.toLowerCase() !== prepared.data.toLowerCase() || confirmed.value !== 0n) throw new Error('The transaction was replaced by a different request. Inspect the transaction before continuing.');
       if (receipt.status !== 'success') throw new Error('The transaction reverted. No changes from this transaction were applied.');
-      setTx({ status: 'confirmed', hash, action: intent.action });
       await query.invalidateQueries();
+      setTx({ status: 'confirmed', hash, action: intent.action });
       return true;
     } catch (error) {
       setTx({ status: 'failed', hash, action: intent.action, message: hash ? `Confirmation could not be completed: ${readable(error)} Check the transaction before retrying.` : readable(error) });
-      await query.invalidateQueries();
+      void query.invalidateQueries();
       return false;
     } finally { lock.current = false; }
   }
