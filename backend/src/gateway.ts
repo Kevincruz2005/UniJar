@@ -1,8 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-import { createPublicClient, encodeFunctionData, http, type Abi, type Address, type Hex } from 'viem';
+import { createPublicClient, encodeFunctionData, http, type Abi, type Address, type Hex, parseAbiItem } from 'viem';
 import { rpcQueue } from './rpc-queue.js';
 
+export type SettlementEvent = { lotId: bigint; action: number; requestId: Hex; resultingState: number; txBlock: bigint; sourceId: Hex; sourceDataHash: Hex; externalObservedAt: bigint; gasPriceWei: bigint; blockNumber: bigint; transactionHash: Hex; logIndex: number };
 export interface Gateway {
+  baseFee?(block: bigint): Promise<bigint>;
+  settlementEvents?(receiver: Address, lotId: bigint, from: bigint, to: bigint): Promise<SettlementEvent[]>;
+  successfulReceipt?(hash: Hex, block: bigint): Promise<boolean>;
   chainId(): Promise<number>;
   blockNumber(): Promise<bigint>;
   timestamp(block: bigint): Promise<bigint>;
@@ -19,6 +23,14 @@ export function rpcGateway(url: string, options: { requestsPerSecond?: number } 
   const pendingReads = new Map<string, Promise<unknown>>();
   const client = createPublicClient({ transport: http(url, { batch: { batchSize: 20, wait: 5 }, timeout: 8000, retryCount: 1, retryDelay: 1000 }), batch: { multicall: false } });
   return {
+    baseFee: blockNumber => schedule(async () => { const b = await client.getBlock({ blockNumber }); if (b.baseFeePerGas === null) throw new Error('Missing base fee'); return b.baseFeePerGas; }),
+    settlementEvents: (address, lotId, fromBlock, toBlock) => schedule(async () => {
+      if (toBlock < fromBlock || toBlock - fromBlock > 9n) throw new Error('Unbounded log request');
+      const logs = await client.getLogs({ address, fromBlock, toBlock, strict: true,
+        event: parseAbiItem('event CREActionExecuted(uint256 indexed lotId,uint8 indexed action,bytes32 indexed requestId,uint8 resultingState,uint256 txBlock,bytes32 sourceId,bytes32 sourceDataHash,uint64 externalObservedAt,uint256 gasPriceWei)'), args: { lotId } });
+      return logs.filter(log => !log.removed).map(log => ({ ...log.args, blockNumber: log.blockNumber, transactionHash: log.transactionHash, logIndex: log.logIndex }));
+    }),
+    successfulReceipt: (hash, block) => schedule(async () => { const receipt = await client.getTransactionReceipt({ hash }); return receipt.status === 'success' && receipt.blockNumber === block; }),
     chainId: () => schedule(() => client.getChainId(), true),
     blockNumber: () => schedule(() => client.getBlockNumber({ cacheTime: 0 }), true),
     timestamp: blockNumber => schedule(async () => (await client.getBlock({ blockNumber })).timestamp),

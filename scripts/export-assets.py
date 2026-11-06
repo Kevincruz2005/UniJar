@@ -12,6 +12,7 @@ for name, path in {
     'UniJar': 'contracts/out/UniJar.sol/UniJar.json',
     'IERC20': 'contracts/out/FixtureToken.sol/FixtureToken.json',
     'TokenJar': 'contracts/out/TokenJar.sol/TokenJar.json',
+    'CRESettlementReceiver': 'cre-contracts/out/CRESettlementReceiver.sol/CRESettlementReceiver.json',
     'ReceiptRegistry': 'fee-contracts/out/ReceiptRegistry.sol/ReceiptRegistry.json',
 }.items():
     artifact = json.loads((root / path).read_text())
@@ -30,5 +31,8 @@ if len(sys.argv) > 1:
     source = pathlib.Path(sys.argv[1])
     if not source.is_file(): raise SystemExit('A real deployment manifest is required')
     shutil.copy(source, public / 'manifest.json')
+cre_manifest = root / ('deployments/cre-local.json' if len(sys.argv) > 1 and pathlib.Path(sys.argv[1]).name == 'local.json' else 'deployments/cre-sepolia.json')
+if cre_manifest.is_file(): shutil.copy(cre_manifest, public / 'cre-manifest.json')
+elif (public / 'cre-manifest.json').exists(): (public / 'cre-manifest.json').unlink()
 (public / 'build.json').write_text(json.dumps({'sourceCommit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip()}))
 print('Exported runtime assets (not tracked)')

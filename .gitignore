@@ -16,3 +16,4 @@ backend/public/
 deployments/local.json
 deployments/*.pending.json
 coverage/
+deployments/cre-local.json

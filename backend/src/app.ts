@@ -8,6 +8,9 @@ import { encodeFunctionData, keccak256, zeroAddress, type Address, type Abi, typ
 import { isRevert, rpcFailureKind, type Gateway } from './gateway.js';
 import type { Manifest } from './manifest.js';
 import * as s from './schemas.js';
+import { registerCRERoutes } from './cre-routes.js';
+import type { CREConfiguration } from './cre-config.js';
+import type { GasResult } from './cre-domain.js';
 import { assetInfo, referenceRefusal, simulationReason } from './chain-data.js';
 
 export type Lot = { mode: number; state: number; asset: Address; quantity: bigint; committedAt: bigint; expiry: bigint; reserve: bigint; increment: bigint; bidder: Address; recipient: Address; highest: bigint; policyHash: Hex; policy: Record<string, unknown> };
@@ -18,7 +21,7 @@ const uint = (value: unknown, bits = 256): bigint => {
   const parsed = BigInt(String(value)); if (parsed < 0n || parsed >= 1n << BigInt(bits)) throw new HttpError(400, 'INTEGER_OUT_OF_RANGE'); return parsed;
 };
 
-export async function buildApp(options: { manifest: Manifest; gateway: Gateway; abis: { sale: Abi; token: Abi; jar: Abi; fee: Abi }; version?: string; azureIngress?: boolean; allowedOrigins?: string[]; rateMax?: number; readinessTtl?: number; logger?: boolean }) {
+export async function buildApp(options: { manifest: Manifest; gateway: Gateway; abis: { sale: Abi; token: Abi; jar: Abi; fee: Abi }; cre?: CREConfiguration; creAbi?: Abi; creGas?: (age: number, max: bigint) => Promise<GasResult>; version?: string; azureIngress?: boolean; allowedOrigins?: string[]; rateMax?: number; readinessTtl?: number; logger?: boolean }) {
   const { manifest: m, gateway: g, abis } = options;
   const a = m.addresses as Record<keyof Manifest['addresses'], Address>;
   const assets = [...new Set([a.directAsset, a.auctionAsset, ...m.reviewAssets as Address[], a.payout])];
@@ -81,6 +84,7 @@ export async function buildApp(options: { manifest: Manifest; gateway: Gateway; 
       throw new HttpError(409, refused.reason);
     }
   }
+  registerCRERoutes(app, { manifest: m, gateway: g, config: options.cre, abi: options.creAbi, saleAbi: abis.sale, context, lot: getLot, clean, error: (status, message) => new HttpError(status, message), gas: options.creGas });
   const errors = { 400: s.errorResponse, 404: s.errorResponse, 409: s.errorResponse, 413: s.errorResponse, 429: s.errorResponse, 503: s.errorResponse };
   const feeResponse = s.object({ service: s.address, asset: s.address, jar: s.address, merchant: s.address, price: s.decimal, feeBps: { type: 'integer' }, feePerReceipt: s.decimal, nextReceiptId: s.decimal, totalFees: s.decimal, symbol: { type: 'string' }, decimals: { type: 'integer' } });
   app.get('/v1/fee-source', { schema: { response: { 200: s.envelope(feeResponse), ...errors } } }, async () => {

@@ -5,6 +5,9 @@ import { ContractFunctionRevertedError, encodeErrorResult, encodeFunctionData, k
 import { buildApp, type Lot } from '../src/app.js';
 import { loadAbis, manifestSchema, type Manifest } from '../src/manifest.js';
 import { decodedRevert } from '../src/chain-data.js';
+import { creManifestSchema } from '../src/cre-config.js';
+import { GAS_SOURCE_ID } from '../src/cre-domain.js';
+import type { SettlementEvent } from '../src/gateway.js';
 import type { Gateway } from '../src/gateway.js';
 
 const addr = (i: number) => `0x${i.toString(16).padStart(40, '0')}` as Address;
@@ -30,7 +33,7 @@ class Fake implements Gateway {
   async blockNumber() { this.failure(); return 123n; }
   async timestamp() { this.failure(); return 2000n; }
   async code(address: Address) { this.failure(); return this.badCode || address === this.badCodeAddress ? '0x' as Hex : code; }
-  async read(_address: Address, _abi: unknown, method: string, args: readonly unknown[], block: bigint) {
+  async read(_address: Address, _abi: unknown, method: string, args: readonly unknown[], block: bigint): Promise<unknown> {
     this.failure(); this.calls.push({ method, args, block });
     if (method === 'name') return `Chain token ${_address}`;
     if (method === 'symbol') return 'CHAIN';
@@ -239,4 +242,68 @@ test('fee service reads are pinned and prepare permits only its exact price appr
   assert.ok(g.calls.every(c => c.block === 123n));
   g.badPrice = true; assert.equal((await app.inject('/v1/fee-source')).statusCode, 503);
   const absent = await appFor(); t.after(() => absent.close()); assert.equal((await absent.inject('/v1/fee-source')).statusCode, 404);
+});
+
+test('CRE disabled status is explicit and existing unsigned manual exits work without CRE', async t => {
+  const fake = new Fake(); fake.lot.mode = 1; fake.lot.expiry = 1000n;
+  const app = await appFor(fake); t.after(() => app.close());
+  const status = (await app.inject('/v1/cre/status')).json().data;
+  assert.equal(status.mode, 'DISABLED'); assert.equal(status.persistentAutomation, false);
+  const eligibility = (await app.inject('/v1/cre/lots/1/eligibility')).json().data;
+  assert.equal(eligibility.manualAction, 'finalizeAuction'); assert.equal(eligibility.decision.status, 'DATA_UNAVAILABLE');
+  const tx = await app.inject({ method: 'POST', url: '/v1/transactions/prepare', payload: { action: 'finalizeAuction', sender: addr(22), params: { id: '1' } } });
+  assert.equal(tx.statusCode, 200, tx.body); assert.equal(tx.json().to, manifest.addresses.releaser);
+  assert.equal((await app.inject({ method: 'POST', url: '/v1/cre/execute', payload: {} })).statusCode, 404);
+  const history = (await app.inject('/v1/cre/lots/1/history')).json().data;
+  assert.equal(history.coverage, 'NO_VERIFIED_RECEIVER'); assert.deepEqual(history.events, []);
+  assert.equal((await app.inject('/v1/cre/lots/0/eligibility')).statusCode, 400);
+  assert.equal((await app.inject('/v1/cre/lots/99/eligibility')).statusCode, 404);
+  assert.equal((await app.inject(`/v1/cre/lots/${'9'.repeat(78)}/eligibility`)).statusCode, 400);
+  const spec = (await app.inject('/openapi.json')).json(); assert.ok(spec.paths['/v1/cre/status']);
+});
+
+const creFixture = () => creManifestSchema.parse({ chainId: 31337, sourceCommit: '4'.repeat(40), workflow: { name: 'unijar-settlement', version: '0.1.0', sdk: '1.23.0', cli: '1.39.0', wasmHash: `0x${'4'.repeat(64)}` },
+  simulationOnly: true, releaser: manifest.addresses.releaser, receiver: { address: addr(30), codeHash: keccak256(code), block: '1', transactionHash: `0x${'5'.repeat(64)}` }, forwarder: { address: addr(31), codeHash: keccak256(code) },
+  sourceId: GAS_SOURCE_ID, maxReportAge: 300, maxBlockLag: 100, actionGasLimit: 250000, maxGasPriceWei: '200000000000', gasBudgetWei: '1000000000000000', maxDeferralSeconds: 1800, maxExternalAgeSeconds: 180, finalizeGasUnits: '650000', recoverGasUnits: '650000' });
+class CREFake extends Fake {
+  receiptOK = true; eventOK = true; windows: [bigint, bigint][] = [];
+  override async read(address: Address, abi: unknown, method: string, args: readonly unknown[], block: bigint): Promise<unknown> {
+    if (address !== addr(30)) return super.read(address, abi, method, args, block);
+    if (method === 'readContext') return [31337n, block, 2000n, 17n, keccak256(code), 1n];
+    if (method === 'releaser') return addr(2); if (method === 'forwarder') return addr(31);
+    if (method === 'simulationOnly') return true; if (method === 'sourceId') return GAS_SOURCE_ID;
+    if (method === 'maxGasPriceWei') return 200000000000n; if (method === 'automationPaused') return false;
+    throw new Error('Unexpected CRE test read');
+  }
+  async settlementEvents(_receiver: Address, lotId: bigint, from: bigint, to: bigint): Promise<SettlementEvent[]> {
+    this.windows.push([from, to]);
+    if (to !== 123n) return [];
+    return [{ lotId, action: 1, requestId: `0x${'6'.repeat(64)}`, resultingState: 2, txBlock: 123n, sourceId: this.eventOK ? GAS_SOURCE_ID : `0x${'0'.repeat(64)}`, sourceDataHash: `0x${'7'.repeat(64)}`,
+      externalObservedAt: 1990n, gasPriceWei: 330000000n, blockNumber: 123n, transactionHash: `0x${'8'.repeat(64)}`, logIndex: 0 }];
+  }
+  async successfulReceipt() { return this.receiptOK; }
+}
+test('CRE simulation status verifies trust and history is bounded, receipt-backed and explicitly scoped', async t => {
+  const fake = new CREFake(); const cre = creFixture();
+  const app = await appFor(fake, { cre: { manifest: cre }, creAbi: [] }); t.after(() => app.close());
+  const status = await app.inject('/v1/cre/status'); assert.equal(status.statusCode, 200, status.body);
+  assert.equal(status.json().data.mode, 'SIMULATION_ONLY'); assert.equal(status.json().data.persistentAutomation, false);
+  const history = await app.inject('/v1/cre/lots/1/history'); assert.equal(history.statusCode, 200, history.body);
+  assert.equal(history.json().data.events.length, 1); assert.equal(history.json().data.events[0].receiptVerified, true);
+  assert.equal(history.json().data.coverage, 'RECENT_100_BLOCKS_MAXIMUM'); assert.equal(history.json().data.offchainRuns, 'NOT_INDEXED');
+  assert.equal(fake.windows.length, 10); assert.ok(fake.windows.every(([from, to]) => to - from <= 9n));
+  fake.receiptOK = false; assert.equal((await app.inject('/v1/cre/lots/1/history')).json().error, 'CRE_EVENT_UNVERIFIED');
+  fake.receiptOK = true; fake.eventOK = false; assert.equal((await app.inject('/v1/cre/lots/1/history')).json().error, 'CRE_EVENT_UNVERIFIED');
+});
+test('bad CRE code/config cannot label a live DON or disable ordinary UniJar reads and manual exits', async t => {
+  const fake = new CREFake(); fake.badCodeAddress = addr(30);
+  const app = await appFor(fake, { cre: { manifest: creFixture() }, creAbi: [] }); t.after(() => app.close());
+  assert.equal((await app.inject('/v1/cre/status')).json().error, 'CRE_DEPLOYMENT_MISMATCH');
+  assert.equal((await app.inject('/readyz')).statusCode, 200); assert.equal((await app.inject('/v1/config')).statusCode, 200);
+  fake.lot.mode = 1; fake.lot.expiry = 1000n;
+  assert.equal((await app.inject({ method: 'POST', url: '/v1/transactions/prepare', payload: { action: 'finalizeAuction', sender: addr(22), params: { id: '1' } } })).statusCode, 200);
+  assert.equal(creManifestSchema.safeParse({ ...creFixture(), simulationOnly: false }).success, false);
+  const invalid = await appFor(new Fake(), { cre: { invalid: true } }); t.after(() => invalid.close());
+  assert.equal((await invalid.inject('/v1/cre/status')).json().data.reason, 'CRE_CONFIGURATION_INVALID');
+  assert.equal((await invalid.inject('/readyz')).statusCode, 200);
 });
