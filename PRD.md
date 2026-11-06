@@ -229,6 +229,18 @@ Differentiate jar inventory, lot escrow, winning bid liability, credited refunds
 
 **Accept:** All failures are honest, explain the next possible action and preserve access to refunds/exits when possible.
 
+### F-10 — Controlled fee-source integration
+
+**Surface:** `/fees`; original TokenJar and a separate paid receipt registry.
+
+- Register a nonzero reference hash once per payer, with an onchain receipt, payer and timestamp. Collect a disclosed fixed test-token price; route the service fee directly to TokenJar and the remainder to the merchant atomically. The service holds no funds and exposes no privileged withdrawal or mint.
+- Read token metadata, immutable payment terms, balances, allowance, receipt count and lifetime collected fees from chain. Manifest pins the additional source commit, runtime hash and immutable terms separately from the original sale deployment.
+- Approve only the exact verified service price, then pay through the wallet. Reject arbitrary targets, altered terms, duplicate references, failed or inexact transfers and reentrancy. No public token faucet is added.
+- Demonstrate fee collection followed by a separately opened exact-lot auction, funded bid and treasury settlement. Verify the jar increment, merchant/payer deltas, buyer delivery and payout independently. Lifetime collection is distinct from current jar inventory.
+- The service and participants use controlled Sepolia tokens. This validates the payment/collection/sale path, not production revenue, customer adoption or market demand. The fixed sample fee is explicit configuration, not a fabricated live rate.
+
+**Accept:** Real receipt payment increases the original jar, its collected quantity can be sold through the existing releaser, and verified treasury proceeds agree with the funded sale.
+
 ## 6. UI and navigation specification
 
 **Required browser views (may be consolidated into fewer pages without losing features):**

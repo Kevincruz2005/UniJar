@@ -221,3 +221,37 @@ in [docs/VALIDATION.md](docs/VALIDATION.md).
 Original app code is AGPL-3.0-only. Dependency licenses and source/tool pins are
 described in [docs/SOURCES.md](docs/SOURCES.md). Passing the demo checks does not
 constitute a production security audit.
+
+### Receipt fees and service checks
+
+`/fees` registers paid reference receipts on the selected test network. A
+reference hash, payer and timestamp are recorded onchain; each payer/reference
+pair can be charged once. The separate, noncustodial `ReceiptRegistry` transfers
+the service fee to the original TokenJar and the remainder to the merchant.
+The operator can then auction an exact quantity of collected fees for the
+configured payout token. Receipt payment and sale settlement are separate
+transactions; a receipt does not guarantee a sale or buyer.
+
+The controlled deployment terms are explicit in
+[config/receipt-service.json](config/receipt-service.json): a price of 10 mALT
+and a 10% service fee, using the fixture token's 18 decimals. These are fixed
+sample service terms, not market data. Runtime balances, receipt counts, total
+fees and sale results come from the chain. Test-token minting is restricted to
+the local operator tooling; the public API and browser cannot mint.
+
+`fee-contracts/` is compiled and tested separately from the immutable deployed
+sale and original Uniswap contracts. `make check` includes both suites.
+`CHAIN_ID=11155111 backend/node_modules/.bin/tsx backend/tools/deploy-fee-source.ts`
+deploys only this additional service, saves its transaction hash before waiting,
+and pins its source commit, receipt, runtime hash and immutable terms in the
+Sepolia manifest. Local fixture scripts deploy an independent Anvil instance.
+
+`/status` reports the browser/backend builds, API liveness, chain/code readiness,
+adoption and admission state independently. It retains links to credits and lot
+lifecycle actions during failures. RPC transport batches block-pinned JSON-RPC
+reads in groups of at most 20 and retries transient failures once, with an
+8-second per-attempt timeout. Failure logs contain only a category, route
+template and request ID; provider URLs, RPC messages and request bodies are
+excluded. The browser applies a 25-second deadline even when a query supplies
+its own cancellation signal. The past intermittent Azure 503s were not
+reproduced in the recent log sample; their historical root cause is unproven.
