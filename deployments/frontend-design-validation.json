@@ -1,9 +1,9 @@
 {
   "frontend": "https://unijar-web.purplewater-5aec7560.centralindia.azurecontainerapps.io",
   "chainId": 11155111,
-  "sourceCommit": "25144e369c248e144d5968809c0a7654e64b7a29",
-  "imageDigest": "sha256:d2c07a1ded13690d572c0eb78bcd8ce20a8111cdf1655ee1b85494066bd13903",
-  "verifiedAt": "2026-11-06T09:51:04.648668+00:00",
+  "sourceCommit": "2a3ab46c53b1f31bac52a75fd978876aafd64e13",
+  "imageDigest": "sha256:4d2fff80a093286edfdf03462a6c018d708ccf62e8dbb9b5c005318f3ad3053d",
+  "verifiedAt": "2026-11-06T10:04:35.116Z",
   "designReference": {
     "file": "DESIGN.md",
     "source": "https://shelby.xyz",
@@ -16,7 +16,7 @@
       "pinkLight": "#fc74cc"
     },
     "fonts": "System sans-serif and monospace fallbacks; proprietary fonts are not copied.",
-    "artwork": "Original geometric SVG collection motif"
+    "artwork": "Original full-height, edge-cropped curved pink side pattern adapted from the user-provided screenshot."
   },
   "local": {
     "typecheck": "passed",
@@ -29,23 +29,19 @@
   "azure": {
     "publicBrowserTests": 6,
     "healthIdentity": "passed",
-    "allowedOrigin": "passed",
+    "apiReadiness": "Follow-up health, readiness and config requests returned 200 after a transient readiness 503.",
+    "apiBuild": "85039ec0993e23885c5036e03572c8ab6a692745",
+    "allowedOrigin": "passed by deployment checks and real browser reads",
+    "desktop1440pxOverflow": false,
     "mobile390pxOverflow": false,
     "walletVisibleOnMobile": true,
-    "reducedMotion": "Marquee animation stops when reduced motion is requested.",
-    "apiFollowUp": {
-      "healthz": 200,
-      "readyz": 200,
-      "config": 200,
-      "block": "12075785",
-      "observation": "Transient API 503 responses were observed after browser validation; subsequent health, readiness and config checks returned 200. No backend code or image was changed."
-    }
+    "productionContainer": "Passed local deep route, health, build identity and UID 1000 checks before publishing."
   },
   "manualVisualInspection": [
-    "Landing at 320, 390, 650, 850, 1024 and 1440 CSS pixel widths",
-    "Desktop inventory and lot detail",
-    "Mobile documentation",
-    "Desktop/mobile Azure landing"
+    "Desktop/mobile landing composition",
+    "Desktop inventory and documentation",
+    "No document overflow across landing, inventory, docs and funds at 320, 850 and 1440 CSS pixel widths",
+    "Desktop/mobile Azure landing, visible wallet and CTA placement"
   ],
   "textContrast": {
     "inkOnCream": 13.51,
@@ -53,10 +49,23 @@
     "plumOnTint": 8.11,
     "inkOnLightPink": 6.14
   },
-  "scope": "Visual system and landing illustration; wallet signing, transaction intent, backend and contract code are unchanged.",
+  "scope": "Layout and typography enlargement with a shared curved motif. Wallet signing, transaction-intent validation, backend code and contracts are unchanged. No additional public-chain transactions were executed.",
   "priorSepoliaTransactionEvidence": "deployments/frontend-validation.json",
   "newSepoliaTransactionsForRestyle": 0,
   "remainingManualChecks": [
     "Actual MetaMask/Rabby extensions and physical wallet devices remain manual acceptance checks."
-  ]
+  ],
+  "composition": {
+    "desktopHero": "900px-high edge-cropped pattern at a 1440x900 viewport; primary CTA remains in the first viewport.",
+    "maximumHeadlineSize": 120,
+    "maximumProductHeadingSize": 76,
+    "documentationTitleSize": 72,
+    "sharedPatternSurfaces": [
+      "Landing hero",
+      "Product-page heading rails",
+      "Documentation gutter",
+      "Footer"
+    ],
+    "mobile": "Cropped landing pattern moves below the primary actions; docs gutter is hidden and heading rails narrow."
+  }
 }
