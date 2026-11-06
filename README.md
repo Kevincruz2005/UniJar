@@ -5,8 +5,11 @@ of fees held in the original Uniswap TokenJar through funded auctions or guarded
 v3-reference-priced direct purchases. The reference pool supplies a price; a
 direct purchase transfers payment straight to treasury and does not swap.
 
-The authoritative scope and acceptance requirements are [START.md](START.md),
-[BACKEND.md](BACKEND.md), and [AZURE.md](AZURE.md). No frontend is included.
+The complete MVP requirements are in [PRD.md](PRD.md), including the next
+wallet-connected frontend phase. [START.md](START.md), [BACKEND.md](BACKEND.md),
+and [AZURE.md](AZURE.md) describe the validated backend baseline. No frontend has
+been implemented yet. The [PRD gap assessment](docs/PRD-GAP-ASSESSMENT.md) separates
+existing evidence from remaining full-stack acceptance work.
 
 ## Validation order and current status
 
@@ -18,7 +21,7 @@ The main history was consolidated into substantial local-to-cloud milestones at
 the user's request. Original history is retained on
 `archive/before-local-first-rewrite`; the original deployed source is retained by
 `deployment-source-62ab150`. Public manifests retain that original source SHA.
-When publishing the repository, publish the deployed-source tag with `master` so
+When publishing the repository, publish the deployed-source tag with `main` so
 that provenance remains resolvable. No remote history has been force-pushed.
 
 ## Run locally
