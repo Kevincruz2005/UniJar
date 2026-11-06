@@ -9,7 +9,7 @@ test.describe('real-chain browser wallet journeys', () => {
   async function open(page: Page, mode: 'direct' | 'auction', minutes = '2') {
     await page.goto('/operator'); await syncClock(page);
     await page.getByLabel('Configured asset').selectOption(mode === 'direct' ? manifest.addresses.directAsset : manifest.addresses.auctionAsset);
-    await page.getByLabel('Quantity (', { exact: false }).fill('1');
+    await page.getByLabel(/^Quantity \(/).fill('1');
     await page.getByLabel('Expires in (minutes)').fill(minutes);
     if (mode === 'auction') { await page.getByLabel('Reserve (', { exact: false }).fill('1'); await page.getByLabel('Increment (', { exact: false }).fill('0.1'); }
     await page.getByRole('button', { name: mode === 'direct' ? /Review & open direct lot/ : /Review & open auction/ }).click();
