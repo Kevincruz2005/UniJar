@@ -9,7 +9,7 @@ mkdir -p .local
 python3 scripts/accounts.py --local
 archive=".local/web-run-$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "$archive"
-for file in .local/local.pending.json deployments/local.json; do
+for file in .local/local.pending.json .local/fee-source-local.json deployments/local.json; do
   if [[ -f "$file" ]]; then mv "$file" "$archive/$(basename "$file")"; fi
 done
 .tools/anvil --accounts 0 --host 127.0.0.1 --port 18545 --chain-id 31337 --timestamp "$(($(date +%s) - 1900))" --hardfork cancun --silent > "$archive/anvil.log" 2>&1 &
@@ -30,6 +30,8 @@ for address in json.loads(pathlib.Path('.local/local-accounts.json').read_text()
         assert 'error' not in json.load(response)
 PY
 CHAIN_ID=31337 backend/node_modules/.bin/tsx backend/tools/deploy.ts
+CHAIN_ID=31337 backend/node_modules/.bin/tsx backend/tools/deploy-fee-source.ts
+python3 scripts/export-assets.py deployments/local.json
 python3 - <<'PY'
 import json,time,urllib.request
 def request(method,params):

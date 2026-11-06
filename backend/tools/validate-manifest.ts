@@ -16,7 +16,14 @@ export async function validateManifest() {
   }
   const abis = loadAbis(resolve(root, 'backend/public'));
   for (const [method, expected] of Object.entries({ jar: m.addresses.jar, treasury: m.roles.treasury, operator: m.roles.operator, payout: m.addresses.payout, reader: m.addresses.reader, factory: m.addresses.factory })) {
-    const actual = await client.readContract({ address: m.addresses.releaser as Address, abi: abis.sale, functionName: method, blockNumber: block }); assert.equal(String(actual).toLowerCase(), expected.toLowerCase());
+    const actual: unknown = await client.readContract({ address: m.addresses.releaser as Address, abi: abis.sale, functionName: method, blockNumber: block }); assert.equal(String(actual).toLowerCase(), expected.toLowerCase());
+  }
+  if (m.feeSource && m.addresses.feeSource) {
+    const fields = { asset: m.feeSource.asset, jar: m.addresses.jar, merchant: m.feeSource.merchant, price: m.feeSource.price, feeBps: m.feeSource.feeBps };
+    for (const [method, expected] of Object.entries(fields)) {
+      const actual: unknown = await client.readContract({ address: m.addresses.feeSource as Address, abi: abis.fee, functionName: method, blockNumber: block });
+      assert.equal(String(actual).toLowerCase(), String(expected).toLowerCase());
+    }
   }
   const adopted = await client.readContract({ address: m.addresses.jar as Address, abi: abis.jar, functionName: 'releaser', blockNumber: block }); assert.equal(String(adopted).toLowerCase(), m.addresses.releaser.toLowerCase());
   return m;

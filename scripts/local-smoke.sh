@@ -19,8 +19,9 @@ for account in json.loads(pathlib.Path('.local/local-accounts.json').read_text()
   result=json.load(r)
   if 'error' in result:raise RuntimeError('Local funding failed')
 PY
-rm -f .local/local.pending.json deployments/local.json
+rm -f .local/local.pending.json .local/fee-source-local.json deployments/local.json
 CHAIN_ID=31337 backend/node_modules/.bin/tsx backend/tools/deploy.ts
+CHAIN_ID=31337 backend/node_modules/.bin/tsx backend/tools/deploy-fee-source.ts
 python3 scripts/export-assets.py deployments/local.json
 CHAIN_ID=31337 backend/node_modules/.bin/tsx backend/tools/smoke.ts
 cp .local/local-smoke.json .local/native-smoke.json
