@@ -21,6 +21,9 @@
     "reader": "0x2ea06589b162d9ca07bdf6342983bcfb6afd8e34",
     "fixture": "0x87298fa3c41ff04d93db498c91cf9d15fe727bff"
   },
+  "reviewAssets": [
+    "0x2c7b6527e003d81a794d85e786fae2e58e103685"
+  ],
   "roles": {
     "operator": "0x604095F916e24FF354eD9DAB27b2a6638DE28412",
     "treasury": "0x57FDd22D840e61A4f93238b28351420B97056A90",
@@ -81,6 +84,12 @@
       "block": "12071734",
       "transactionHash": "0x9fe6f66fcc6c1d8b3a41db8c1c89529ee86c6e2241b25050abc6a880bd2b55f6",
       "codeHash": "0x84639067fa7fb7e37d480567b9c6db1ab7bc3c901089eb0f49bd32146c05d965"
+    },
+    "reviewAsset": {
+      "address": "0x2c7b6527e003d81a794d85e786fae2e58e103685",
+      "block": "12073735",
+      "transactionHash": "0x652e6b105db57efc513104f3f46e0bafcfe87ce43071bbb0cd0922763b03c8e4",
+      "codeHash": "0xfec8e14eb38ba6f3581e2bb793470172b15a3ad16f86b66c53fa66223c110814"
     }
   },
   "transactions": {
@@ -108,7 +117,9 @@
     "approveFixture:usd": "0x0cdcc67ea9c96959c7148491dc269d1a895d9353ff1cff142cedc49db3db72dc",
     "approveFixture:fee": "0x614e2105343eae61a6979a6aa05d93f216acb75b84db260fe30ba6bff20dea54",
     "seedLiquidity": "0xf27b0bf4a1ac7c29b40eec2347f0530c8c812edaf35afd1cb1f96e18781cc76f",
-    "freshLiquidity:1793911308": "0x960e0059257333ad28820e14ebfefb0e04cfa9476341e1c935dd41d64bdf46f6"
+    "freshLiquidity:1793911308": "0x960e0059257333ad28820e14ebfefb0e04cfa9476341e1c935dd41d64bdf46f6",
+    "deploy:reviewAsset": "0x652e6b105db57efc513104f3f46e0bafcfe87ce43071bbb0cd0922763b03c8e4",
+    "jarREVIEW": "0x06087abb356d02df0a826c6e3195dd3cd26527274a013c330ae637c8c72e92cc"
   },
   "policy": {
     "pool": "0x791a228182FC3f0aB61a07b4A7FE0a1504C41cBf",
