@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider } from 'wagmi';
 import { TransactionProvider, walletConfig } from './wallet';
 import { App } from './App';
+import './tokens.css';
 import './base.css';
 import './landing.css';
 import './product.css';

@@ -1,0 +1,37 @@
+/* Adapted from the user-selected Shelby reference in /DESIGN.md. */
+:root {
+  color-scheme: light;
+  --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --paper: #f7f1e9;
+  --surface: #fcfaf8;
+  --ink: #322312;
+  --muted: #756b5e;
+  --line: #d4cbc0;
+  --accent: #810254;
+  --accent-soft: #f8dfef;
+  --pink: #f905a3;
+  --pink-light: #fc74cc;
+  --pink-shadow: #d9048b;
+  --positive: #386347;
+  --positive-soft: #e9efe5;
+  --warning: #78521f;
+  --warning-soft: #f4e8cf;
+  --error: #a52d28;
+  --error-soft: #f9e7e2;
+  --radius: 4px;
+  --content-width: 1428px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-20: 80px;
+  font-family: var(--font-sans);
+  font-synthesis: none;
+  color: var(--ink);
+  background: var(--paper);
+}
