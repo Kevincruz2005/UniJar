@@ -1,0 +1,80 @@
+{
+  "command": "make container-smoke",
+  "exitCode": 0,
+  "status": "passed",
+  "chainId": 31337,
+  "ephemeral": true,
+  "sourceCommit": "008d267b85b6800b42b24d1a93731a72d722bfa7",
+  "contractTestsPassed": 27,
+  "apiTestsPassed": 6,
+  "invariantRuns": 128,
+  "invariantCalls": 8192,
+  "fuzzRunsPerTest": 256,
+  "imageId": "sha256:f8112381947e32ad11cb556fe26323425ad7bd8c931709def9c85054f9d94feb",
+  "containerChecks": [
+    "non-root UID 1000",
+    "runtime isolation",
+    "restart persistence",
+    "wrong-chain rejection"
+  ],
+  "flows": [
+    {
+      "chainId": 31337,
+      "sourceCommit": "008d267b85b6800b42b24d1a93731a72d722bfa7",
+      "api": "local ephemeral HTTP API",
+      "passed": [
+        "chain/config/code",
+        "block-tagged reads",
+        "direct bounds and sale",
+        "auction outbid/refund/settlement",
+        "permissionless no-bid recovery",
+        "invalid action/target"
+      ],
+      "transactions": [
+        "0x212b3199709dd130b3afd0357b73ce1de448e134b99533604d75a79d2bd47494",
+        "0xa76abf6efbd4844bbbec66867bc47b8ddfb50f796024721d3d38b45884aef35e",
+        "0xfbf3fc64e9725e23dcfc63e6e1cd747346983e388018948c1ed1eb80559132d9",
+        "0x78d44155e995a2d154b2f827e1eb53de952da15c6b1a430877b30394f405914b",
+        "0x18d27c1af69657d7ee5b206e8e28322f1a5cf5028b21c1662f2fd8d080ce26e0",
+        "0x9a263b62fa12aa9f3df80d111f3b3d4f832d68926674103c67715a419fbb32ca",
+        "0xf6952f3d27a28c24a6a52fbc0d036cacfcc21a90650cb4e63948f17cbc293bae",
+        "0x267eeeaf7a0d55d444e5ac091965b7ea1ecfc4604745c6caa80ad4482655e3ab",
+        "0xfa115625be0431d4765a4922759f66418df5737cd4ebc6a74a49d1ea4af5a8bb",
+        "0x4d31d31f040e9f1c55e2f4d8b2fb6ed86f9a5326c41a44b84cf24edfd0106f74",
+        "0x1ade5310962bed3065a3981611d1130cb8459439e520514b3cc3a9f56a20432a",
+        "0x2241c1b221ffa338adc80b97035f7462629dc1ef48aee31ca40d47a55b125989",
+        "0xe511caa4999721f9905d289162bc15b83a7db5281da5a78cd06c7a8cc6e654cb"
+      ],
+      "timestamp": "2026-11-06T01:38:20.844Z"
+    },
+    {
+      "chainId": 31337,
+      "sourceCommit": "008d267b85b6800b42b24d1a93731a72d722bfa7",
+      "api": "http://127.0.0.1:18080",
+      "passed": [
+        "chain/config/code",
+        "block-tagged reads",
+        "direct bounds and sale",
+        "auction outbid/refund/settlement",
+        "permissionless no-bid recovery",
+        "invalid action/target"
+      ],
+      "transactions": [
+        "0xe020595bcc6ded19f8857df3f927b62aafc070b4afe9dc2f71046806d1ed1070",
+        "0x6e2167a0db5fdbc09875ef3434c6329602ca54d8a5f21a372c57320c8c4b0722",
+        "0x7d1d3be1904e2b9824d73c02819ee6d45b25593e5cc02e3d34ad8c1838d400b9",
+        "0x8bc880124ecfce049b052ae98fdbefc3e022485150fef3f524d25c676c484b56",
+        "0x80fefc6549f4582500187888e1b4dcdbd55654b55ed40add791b7241801b25ad",
+        "0xf4eefefcd39b74ab5fa5b38e6b581e696213f45717034dcd5ffdb9760b87b115",
+        "0xf52537602c794de3469f7a20c4b3842f1a9507c11014525c72d49a7c93255126",
+        "0x5d00f3133443813ace0844a7e8dbe613303d86dc150d81a43873579fe65f03a2",
+        "0x87b6713e695de9427f63489b14a5322687dadec0d87168b69db52d974855553d",
+        "0xeb71213a2468d71b791b665317963a4c0a4a1a05898599cc7f2049502b22e180",
+        "0xfc9c7d984a67fe7f610bdc776d06c417de9404e693e7e2a8737ebccb315a1517",
+        "0x4977626a27cd0dc5b62171043b8f344fb181000f0a2c16ed5a096c63a51eb417",
+        "0x83e4d3eb6f33eed69d816486f727fa7ab9c475e361e9c2e046d849297236e84b"
+      ],
+      "timestamp": "2026-11-06T01:39:13.946Z"
+    }
+  ]
+}
