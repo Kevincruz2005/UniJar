@@ -2,11 +2,11 @@
   "url": "https://unijar-web.purplewater-5aec7560.centralindia.azurecontainerapps.io",
   "api": "https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io",
   "resourceGroup": "unijar-demo-rg",
-  "sourceCommit": "cbaab02c829cc983736bf577982e9043de1a870e",
-  "image": "unijarc2ed52as6vxy6.azurecr.io/unijar-web@sha256:612b58e140174965c9bf7276d551e7aeb9b15d2ecc83e4ae2abd28c7cfe1bb9a",
-  "imageDigest": "sha256:612b58e140174965c9bf7276d551e7aeb9b15d2ecc83e4ae2abd28c7cfe1bb9a",
-  "revision": "unijar-web--w-cbaab02c-612b58e1",
-  "deployedAt": "2026-11-06T07:41:23.811Z",
+  "sourceCommit": "25144e369c248e144d5968809c0a7654e64b7a29",
+  "image": "unijarc2ed52as6vxy6.azurecr.io/unijar-web@sha256:d2c07a1ded13690d572c0eb78bcd8ce20a8111cdf1655ee1b85494066bd13903",
+  "imageDigest": "sha256:d2c07a1ded13690d572c0eb78bcd8ce20a8111cdf1655ee1b85494066bd13903",
+  "revision": "unijar-web--w-25144e36-d2c07a1d",
+  "deployedAt": "2026-11-06T09:48:10.866Z",
   "chainId": 11155111,
-  "localValidation": "cbaab02c829cc983736bf577982e9043de1a870e"
+  "localValidation": "25144e369c248e144d5968809c0a7654e64b7a29"
 }
