@@ -124,11 +124,39 @@ Assets, pool, liquidity and buyers are controlled fixtures. Pricing policy is a
 demo configuration; idle observations can become stale and correctly refuse a
 direct fill. The public smoke tool refreshes observations through a real,
 locally signed fixture liquidity mint. No signing key or Anvil service is hosted
-by Azure. Frontend, keepers, database, indexer, cross-chain support and production
+by Azure. Keepers, database, indexer, cross-chain support and production
 economic/security validation are outside this phase.
 
 The deployed sale contract supports one approval mode per asset at a time; the
 API reports that exclusive capability and actual classifications. Simultaneous
 dual-mode approval would require a separately tested contract change/deployment.
-Wallet signing in a browser and the PRD frontend acceptance criteria remain
-unimplemented and unverified in this backend phase.
+The subsequent frontend evidence below extends this backend baseline.
+
+## Frontend local gate
+
+Frontend source `cbaab02c829cc983736bf577982e9043de1a870e` passed
+`npm --prefix frontend run validate:local` before its Azure release:
+
+- TypeScript and the production build passed; nine amount, intent-validation
+  and production-host tests passed.
+- Six production-bundle browser checks passed: navigation/deep reloads, real
+  inventory and held assets, disconnected access, mobile layout, keyboard
+  dismissal and truthful inventory outage handling.
+- Five browser wallet scenarios passed against actual local TokenJar/v3/UniJar
+  contracts, with 20 confirmed transactions including fixture observations.
+  Independently read balances verify direct treasury payment/delivery, fully
+  funded bids, self-outbid/outbid credits, withdrawal, expiry settlement and
+  exact no-bid recovery. A stale reference refuses purchase without fallback.
+- Wrong network, unauthorized controls, account changes during preparation
+  and rejected signatures were exercised. The browser compares encoded intent
+  and deployment identity, and checks the actual confirmed transaction before
+  showing success. Failed requests release their lock before background reads.
+
+Reproduce with `bash scripts/web-local.sh` running in another terminal, then
+`npm --prefix frontend run validate:local`. The validator saves ignored evidence;
+`make deploy-web` gates publishing on that evidence and an unchanged runtime.
+
+Wallet scenarios inject an EIP-1193 test provider. Encrypted disposable
+keystores sign in the Node test process; browser bundles and traces receive no
+private keys. Actual MetaMask/Rabby extension and physical-device tests remain
+manual acceptance items. QR WalletConnect is not implemented or claimed.
