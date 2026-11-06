@@ -35,6 +35,7 @@ resource app 'Microsoft.App/containerApps@2025-01-01' = {
         env: [
           { name: 'RPC_URL', secretRef: 'sepolia-rpc' }
           { name: 'EXPECTED_CHAIN_ID', value: '11155111' }
+          { name: 'INGRESS_MODE', value: 'azure' }
           { name: 'CORS_ORIGINS', value: corsOrigins }
         ]
         probes: [

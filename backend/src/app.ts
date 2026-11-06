@@ -3,6 +3,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
+import { isIP } from 'node:net';
 import { encodeFunctionData, keccak256, zeroAddress, type Address, type Abi, type Hex } from 'viem';
 import { isRevert, type Gateway } from './gateway.js';
 import type { Manifest } from './manifest.js';
@@ -17,7 +18,7 @@ const uint = (value: unknown, bits = 256): bigint => {
   const parsed = BigInt(String(value)); if (parsed < 0n || parsed >= 1n << BigInt(bits)) throw new HttpError(400, 'INTEGER_OUT_OF_RANGE'); return parsed;
 };
 
-export async function buildApp(options: { manifest: Manifest; gateway: Gateway; abis: { sale: Abi; token: Abi; jar: Abi }; version?: string; allowedOrigins?: string[]; rateMax?: number; readinessTtl?: number; logger?: boolean }) {
+export async function buildApp(options: { manifest: Manifest; gateway: Gateway; abis: { sale: Abi; token: Abi; jar: Abi }; version?: string; azureIngress?: boolean; allowedOrigins?: string[]; rateMax?: number; readinessTtl?: number; logger?: boolean }) {
   const { manifest: m, gateway: g, abis } = options;
   const a = m.addresses as Record<keyof Manifest['addresses'], Address>;
   const assets = [...new Set([a.directAsset, a.auctionAsset, ...m.reviewAssets as Address[], a.payout])];
@@ -25,7 +26,15 @@ export async function buildApp(options: { manifest: Manifest; gateway: Gateway; 
   const app = Fastify({ logger: options.logger ? { redact: ['req.headers.authorization', 'req.headers.cookie'], serializers: { req: r => ({ method: r.method, path: r.url?.split('?')[0] }) } } : false,
     bodyLimit: 16384, requestTimeout: 10000, ajv: { customOptions: { removeAdditional: false, coerceTypes: false } } });
   await app.register(cors, { origin: options.allowedOrigins ?? [], methods: ['GET', 'POST', 'OPTIONS'], credentials: false });
-  await app.register(rateLimit, { max: options.rateMax ?? 120, timeWindow: '1 minute', cache: 10000 });
+  await app.register(rateLimit, { max: options.rateMax ?? 120, timeWindow: '1 minute', cache: 10000,
+    keyGenerator: request => {
+      // ACA appends the actual client at the right; caller-controlled prefixes are ignored.
+      // Enable only behind ACA's managed ingress. Direct/local servers ignore forwarded headers.
+      const forwarded = request.headers['x-forwarded-for'];
+      const client = options.azureIngress && typeof forwarded === 'string' ? forwarded.split(',').at(-1)?.trim() : undefined;
+      return client && isIP(client) ? client : request.ip;
+    },
+  });
   await app.register(swagger, { openapi: { info: { title: 'UniJar noncustodial API', version } } });
   app.setErrorHandler((error, _request, reply) => {
     const e = error as { validation?: unknown; statusCode?: number };

@@ -189,3 +189,22 @@ test('refused quotes block approval preparation as business state and preserve o
   const outage = await app.inject({method:'POST',url:'/v1/transactions/prepare',payload});
   assert.equal(outage.statusCode,503); assert.ok(!outage.body.includes('private RPC detail'));
 });
+
+test('Azure rate quotas use only the appended client IP and local servers ignore forwarded headers', async t => {
+  const azure = await appFor(new Fake(), { azureIngress: true, rateMax: 2 }); t.after(() => azure.close());
+  const request = (forwarded: string, remoteAddress: string) => azure.inject({url:'/v1/credits/invalid',headers:{'x-forwarded-for':forwarded},remoteAddress});
+  assert.equal((await request('198.51.100.1, 203.0.113.1','10.0.0.1')).statusCode,400);
+  assert.equal((await request('198.51.100.2, 203.0.113.1','10.0.0.2')).statusCode,400);
+  const refused = await request('198.51.100.3, 203.0.113.1','10.0.0.3');
+  assert.equal(refused.statusCode,429); assert.equal(refused.headers['x-ratelimit-remaining'],'0');
+  assert.equal((await request('203.0.113.2','10.0.0.1')).statusCode,400, 'different real client gets its own quota');
+  for (const value of ['not-an-ip','']) {
+    await request(value,'10.0.0.9');
+  }
+  assert.equal((await request('also-invalid','10.0.0.9')).statusCode,429,'invalid forwarded data falls back to socket IP');
+  const direct = await appFor(new Fake(), {rateMax:2}); t.after(() => direct.close());
+  for(let i=1;i<=3;i++) {
+    const response = await direct.inject({url:'/v1/credits/invalid',headers:{'x-forwarded-for':`203.0.113.${i}`},remoteAddress:'192.0.2.1'});
+    assert.equal(response.statusCode,i===3?429:400);
+  }
+});

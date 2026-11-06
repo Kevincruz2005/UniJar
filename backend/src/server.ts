@@ -11,7 +11,8 @@ try {
   if (!process.env.RPC_URL) throw new Error('RPC_URL is required');
   const version = JSON.parse(readFileSync('public/build.json', 'utf8')).sourceCommit;
   if (typeof version !== 'string' || !/^[0-9a-f]{40}$/.test(version)) throw new Error('Invalid build provenance');
-  const app = await buildApp({ manifest, version, gateway: rpcGateway(process.env.RPC_URL), abis: loadAbis('public'), allowedOrigins: (process.env.CORS_ORIGINS ?? '').split(',').filter(Boolean), logger: true });
+  if (process.env.INGRESS_MODE && process.env.INGRESS_MODE !== 'azure') throw new Error('Unknown ingress mode');
+  const app = await buildApp({ manifest, version, azureIngress: process.env.INGRESS_MODE === 'azure', gateway: rpcGateway(process.env.RPC_URL), abis: loadAbis('public'), allowedOrigins: (process.env.CORS_ORIGINS ?? '').split(',').filter(Boolean), logger: true });
   const shutdown = () => { void app.close(); };
   process.on('SIGTERM', shutdown); process.on('SIGINT', shutdown);
   await app.listen({ host: '0.0.0.0', port: Number(process.env.PORT ?? 8080) });
