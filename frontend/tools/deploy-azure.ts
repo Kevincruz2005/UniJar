@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdtempSync, rmSync, cpSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '../..');
@@ -22,7 +22,14 @@ const registry = existing.properties.configuration.registries[0].server.split('.
 const dockerEnv = { ...process.env, DOCKER_HOST: process.env.DOCKER_HOST ?? (existsSync('/run/user/1000/unijar-docker.sock') ? 'unix:///run/user/1000/unijar-docker.sock' : undefined) };
 const tag = `${registry}.azurecr.io/unijar-web:${version}`;
 console.log('Building the tested Sepolia frontend container.');
-run('docker', ['build', '--network', 'host', '-f', 'frontend/Dockerfile', '--build-arg', `API_URL=${api.url}`, '--build-arg', `SOURCE_COMMIT=${version}`, '-t', tag, '.'], { env: dockerEnv, timeout: 900000 });
+const context = mkdtempSync(resolve(root, '.local/frontend-context-'));
+try {
+  mkdirSync(resolve(context, 'frontend')); mkdirSync(resolve(context, 'deployments'));
+  for (const name of ['package.json', 'package-lock.json', 'tsconfig.json', 'vite.config.ts', 'index.html', 'src', 'public', 'server.mjs', 'Dockerfile']) cpSync(resolve(root, 'frontend', name), resolve(context, 'frontend', name), { recursive: true });
+  cpSync(resolve(root, 'frontend/Dockerfile.dockerignore'), resolve(context, '.dockerignore'));
+  cpSync(resolve(root, 'deployments/sepolia.json'), resolve(context, 'deployments/sepolia.json'));
+  run('docker', ['build', '--network', 'host', '-f', resolve(context, 'frontend/Dockerfile'), '--build-arg', `API_URL=${api.url}`, '--build-arg', `SOURCE_COMMIT=${version}`, '-t', tag, context], { env: dockerEnv, timeout: 900000 });
+} finally { rmSync(context, { recursive: true, force: true }); }
 // A local production container must pass before its image is published.
 const container = run('docker', ['run', '-d', '--rm', '-p', '127.0.0.1:18082:8080', tag], { env: dockerEnv });
 try {
