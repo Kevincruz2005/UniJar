@@ -1,0 +1,13 @@
+[profile.default]
+src = "src"
+test = "test"
+out = "out"
+libs = ["../.deps", "../contracts"]
+solc_version = "0.8.29"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+remappings = ["unijar/=../contracts/src/", "forge-std/=../.deps/forge-std/src/", "tjar/=../.deps/tjar/src/", "v4-core/=../.deps/tjar/lib/v4-core/src/", "solmate/=../.deps/tjar/lib/solmate/"]
+
+[profile.default.fuzz]
+runs = 256
