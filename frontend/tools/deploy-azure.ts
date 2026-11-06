@@ -32,14 +32,17 @@ try {
   run('docker', ['build', '--network', 'host', '-f', resolve(context, 'frontend/Dockerfile'), '--build-arg', `API_URL=${api.url}`, '--build-arg', `SOURCE_COMMIT=${version}`, '-t', tag, context], { env: dockerEnv, timeout: 900000 });
 } finally { rmSync(context, { recursive: true, force: true }); }
 // A local production container must pass before its image is published.
-const container = run('docker', ['run', '-d', '--rm', '-p', '127.0.0.1:18082:8080', tag], { env: dockerEnv });
+const container = run('docker', ['run', '-d', '--rm', '--network', 'none', tag], { env: dockerEnv });
 try {
   for (let i = 0; i < 30; i++) {
-    try { const health = await (await fetch('http://127.0.0.1:18082/healthz')).json(); assert.equal(health.version, version); break; }
+    try {
+      const health = JSON.parse(run('docker', ['exec', container, 'node', '-e', "fetch('http://127.0.0.1:8080/healthz').then(r=>r.json()).then(v=>console.log(JSON.stringify(v)))"], { env: dockerEnv }));
+      assert.equal(health.version, version); break;
+    }
     catch { if (i === 29) throw new Error('Production container failed local health.'); await new Promise(r => setTimeout(r, 500)); }
   }
   assert.equal(run('docker', ['exec', container, 'id', '-u'], { env: dockerEnv }), '1000');
-  assert.equal((await fetch('http://127.0.0.1:18082/docs/buying')).status, 200);
+  assert.equal(run('docker', ['exec', container, 'node', '-e', "fetch('http://127.0.0.1:8080/docs/buying').then(r=>console.log(r.status))"], { env: dockerEnv }), '200');
 } finally { run('docker', ['stop', container], { env: dockerEnv }); }
 const login = az(['acr', 'login', '--name', registry, '--expose-token']);
 const auth = mkdtempSync(resolve(root, '.local/frontend-acr-'));
