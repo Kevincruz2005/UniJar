@@ -68,15 +68,41 @@ async function waitReady(url: string) {
   }
   throw new Error('HTTPS readiness did not pass within the cold-start allowance');
 }
-async function smoke() {
+async function smoke(runTransactions = true) {
   if (existsSync(resolve(root, '.local/sepolia.env'))) process.loadEnvFile(resolve(root, '.local/sepolia.env'));
   const deployed = JSON.parse(readFileSync(resolve(root, 'deployments/azure.json'), 'utf8'));
   await waitReady(deployed.url);
-  run(resolve(root, 'backend/node_modules/.bin/tsx'), ['backend/tools/smoke.ts'], { timeout: 1200000, env: { ...process.env, CHAIN_ID: '11155111', API_URL: deployed.url } });
-  const before = await (await fetch(`${deployed.url}/v1/inventory`)).json();
+  const reportPath = resolve(root, 'deployments/azure-smoke.json');
+  if (runTransactions) {
+    run(resolve(root, 'backend/node_modules/.bin/tsx'), ['backend/tools/smoke.ts'], { timeout: 1200000, env: { ...process.env, CHAIN_ID: '11155111', API_URL: deployed.url } });
+  } else {
+    const existing = JSON.parse(readFileSync(reportPath, 'utf8'));
+    assert.equal(existing.sourceCommit, deployed.sourceCommit); assert.equal(existing.api, deployed.url);
+    assert.equal(existing.chainId, 11155111); assert.equal(existing.transactions.length, 14);
+    const { client, assertChain } = await import('./runtime.js'); await assertChain();
+    for (const hash of existing.transactions) assert.equal((await client.getTransactionReceipt({ hash })).status, 'success');
+    console.log('Reconfirmed the existing 14 transaction receipts; no transactions replayed');
+  }
+  const beforeResponse = await fetch(`${deployed.url}/v1/inventory`); assert.equal(beforeResponse.status, 200);
+  const before = await beforeResponse.json();
+  const replicaState = () => (az(['containerapp', 'replica', 'list', '--name', 'unijar-api', '--resource-group', groupName, '--revision', deployed.revision]) as any[])
+    .map(replica => ({ name: replica.name, containers: (replica.properties?.containers ?? []).map((container: any) => ({ name: container.name, ready: container.ready, restarts: container.restartCount })) }));
+  const replicasBefore = replicaState();
+  assert.ok(replicasBefore.length > 0, 'Capture a running replica before restart');
+  const originalNames = new Set(replicasBefore.map(replica => replica.name));
+  const replacementReady = (replicas: ReturnType<typeof replicaState>) => replicas.length > 0
+    && replicas.every(replica => !originalNames.has(replica.name) && replica.containers.length > 0
+      && replica.containers.every((container: any) => container.ready));
   az(['containerapp', 'revision', 'restart', '--name', 'unijar-api', '--resource-group', groupName, '--revision', deployed.revision]);
+  let replicasAfter = replicasBefore;
+  for (let attempt = 0; attempt < 60; attempt++) {
+    await new Promise(r => setTimeout(r, 2000)); replicasAfter = replicaState();
+    if (replacementReady(replicasAfter)) break;
+  }
+  assert.ok(replacementReady(replicasAfter), 'Original replicas must be gone and every replacement ready before checking persisted state');
   await waitReady(deployed.url);
-  const after = await (await fetch(`${deployed.url}/v1/inventory`)).json(); assert.deepEqual(after.data, before.data);
+  const afterResponse = await fetch(`${deployed.url}/v1/inventory`); assert.equal(afterResponse.status, 200);
+  const after = await afterResponse.json(); assert.deepEqual(after.data, before.data);
   const health = await (await fetch(`${deployed.url}/healthz`)).json(); assert.equal(health.version, deployed.sourceCommit); assert.equal(health.chainId, 11155111);
   const denied = await fetch(`${deployed.url}/v1/config`, { headers: { origin: 'https://untrusted.example' } }); assert.equal(denied.headers.get('access-control-allow-origin'), null);
   const tooLarge = await fetch(`${deployed.url}/v1/transactions/prepare`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ padding: 'x'.repeat(17000) }) }); assert.equal(tooLarge.status, 413);
@@ -89,7 +115,18 @@ async function smoke() {
   assert.ok(!/"privateKey"\s*:|BEGIN .*PRIVATE KEY/.test(consoleLogs), 'Signing key field appeared in console logs');
   writeFileSync(resolve(root, '.local/azure-console.log'), consoleLogs, { mode: 0o600 });
   let limited = false;
-  for (let i = 0; i < 125; i++) { const r = await fetch(`${deployed.url}/v1/config`); if (r.status === 429) { limited = true; break; } }
+  const burstStart = Date.now(); let rateLimitProof: Record<string, unknown> = {};
+  for (let i = 0; i < 125; i++) {
+    // Invalid addresses fail before RPC reads. Consume bodies to reuse connections.
+    const response = await fetch(`${deployed.url}/v1/credits/not-an-address`, { signal: AbortSignal.timeout(10000) });
+    const body = await response.text();
+    if (response.status === 429) {
+      assert.equal(JSON.parse(body).error, 'RATE_LIMITED');
+      assert.equal(response.headers.get('x-ratelimit-remaining'), '0'); limited = true;
+      rateLimitProof = { requestCount: i + 1, elapsedMs: Date.now() - burstStart, status: 429, limit: response.headers.get('x-ratelimit-limit') }; break;
+    }
+    assert.equal(response.status, 400);
+  }
   assert.ok(limited, 'Live rate limit was not observed');
   if (deployed.previous?.revision && deployed.previous.revision !== deployed.revision) {
     // Single mode safely rolls traffic to each newly ready revision.
@@ -102,16 +139,18 @@ async function smoke() {
       writeFileSync(resolve(root, 'deployments/azure.json'), JSON.stringify(deployed, null, 2) + '\n');
     }
   }
-  const reportPath = resolve(root, 'deployments/azure-smoke.json');
   const report = JSON.parse(readFileSync(reportPath, 'utf8'));
+  report.restartEvidence = { before: replicasBefore, after: replicasAfter };
+  report.rateLimitEvidence = rateLimitProof;
+  report.verifiedAt = new Date().toISOString();
   report.azureChecks = { restartPersistence: 'passed', cors: 'passed', requestSize: 'passed', rateLimit: 'passed', logRedaction: 'passed', rollback: deployed.previous ? 'passed' : 'not applicable: first deployment', coldStartReadiness: 'passed within bounded readiness allowance' };
   writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
   console.log('Azure transaction smoke, restart persistence, CORS and rate limiting passed');
 }
 async function main() {
   const mode = process.argv[2];
-  if (mode === 'smoke') { await smoke(); return; }
-  if (!['plan', 'deploy', 'resume'].includes(mode ?? '')) throw new Error('Use plan, deploy, resume or smoke');
+  if (mode === 'smoke' || mode === 'verify') { await smoke(mode === 'smoke'); return; }
+  if (!['plan', 'deploy', 'resume'].includes(mode ?? '')) throw new Error('Use plan, deploy, resume, smoke or verify');
   const resuming = mode === 'resume';
   const subscription = await preflight();
   if (mode === 'plan') {

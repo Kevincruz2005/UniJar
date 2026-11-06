@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-.PHONY: bootstrap contracts check local-smoke container-smoke accounts deploy-sepolia verify-sources oracle-status azure-plan deploy-azure resume-azure smoke-azure
+.PHONY: bootstrap contracts check local-smoke container-smoke accounts deploy-sepolia verify-sources oracle-status azure-plan deploy-azure resume-azure smoke-azure verify-azure
 bootstrap:
 	bash scripts/bootstrap.sh
 	npm ci --prefix backend
@@ -33,3 +33,5 @@ resume-azure:
 	bash scripts/azure.sh resume
 smoke-azure:
 	bash scripts/azure.sh smoke
+verify-azure:
+	bash scripts/azure.sh verify
