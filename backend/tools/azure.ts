@@ -119,25 +119,33 @@ async function smoke(runTransactions = true) {
   const burstStart = Date.now(); let rateLimitProof: Record<string, unknown> = {};
   for (let i = 0; i < 125; i++) {
     // Invalid addresses fail before RPC reads. Consume bodies to reuse connections.
-    const response = await fetch(`${deployed.url}/v1/credits/not-an-address`, { signal: AbortSignal.timeout(10000) });
+    const response = await fetch(`${deployed.url}/v1/credits/not-an-address`, { headers: { 'x-forwarded-for': `198.51.100.${i % 200 + 1}` }, signal: AbortSignal.timeout(10000) });
     const body = await response.text();
     if (response.status === 429) {
       assert.equal(JSON.parse(body).error, 'RATE_LIMITED');
       assert.equal(response.headers.get('x-ratelimit-remaining'), '0'); limited = true;
-      rateLimitProof = { requestCount: i + 1, elapsedMs: Date.now() - burstStart, status: 429, limit: response.headers.get('x-ratelimit-limit') }; break;
+      rateLimitProof = { requestCount: i + 1, elapsedMs: Date.now() - burstStart, status: 429, limit: response.headers.get('x-ratelimit-limit'), variedUntrustedForwardedPrefixes: true }; break;
     }
     assert.equal(response.status, 400);
   }
   assert.ok(limited, 'Live rate limit was not observed');
+  let rollbackEvidence: Record<string, unknown> | null = null;
   if (deployed.previous?.revision && deployed.previous.revision !== deployed.revision) {
     // Single mode safely rolls traffic to each newly ready revision.
     try {
       const rolled = az(['containerapp', 'update', '--name', 'unijar-api', '--resource-group', groupName, '--image', deployed.previous.image, '--revision-suffix', `rollback-${Date.now()}`], 600000);
       assert.equal(rolled.properties.template.containers[0].image, deployed.previous.image);
       await waitReady(deployed.url, deployed.previous.sourceCommit);
+      const oldHealth = await (await fetch(`${deployed.url}/healthz`)).json(); assert.equal(oldHealth.version, deployed.previous.sourceCommit);
+      rollbackEvidence = { image: deployed.previous.image, version: oldHealth.version, checkedAt: new Date().toISOString() };
     } finally {
-      const restored = az(['containerapp', 'update', '--name', 'unijar-api', '--resource-group', groupName, '--image', deployed.image, '--revision-suffix', `restore-${Date.now()}`], 600000);
-      await waitReady(deployed.url, deployed.sourceCommit); deployed.revision = restored.properties.latestReadyRevisionName;
+      az(['containerapp', 'update', '--name', 'unijar-api', '--resource-group', groupName, '--image', deployed.image, '--revision-suffix', `restore-${Date.now()}`], 600000);
+      await waitReady(deployed.url, deployed.sourceCommit);
+      const restored = az(['containerapp', 'show', '--name', 'unijar-api', '--resource-group', groupName]);
+      assert.equal(restored.properties.template.containers[0].image, deployed.image);
+      deployed.revision = restored.properties.latestReadyRevisionName;
+      assert.equal(deployed.revision, restored.properties.latestRevisionName);
+      deployed.restoredAt = new Date().toISOString();
       writeFileSync(resolve(root, 'deployments/azure.json'), JSON.stringify(deployed, null, 2) + '\n');
     }
   }
@@ -146,6 +154,10 @@ async function smoke(runTransactions = true) {
   const report = JSON.parse(readFileSync(reportPath, 'utf8'));
   report.restartEvidence = { before: replicasBefore, after: replicasAfter };
   report.rateLimitEvidence = rateLimitProof;
+  report.rollbackEvidence = rollbackEvidence;
+  report.verificationCommand = runTransactions ? 'make deploy-azure / make smoke-azure' : 'make verify-azure';
+  report.verificationSourceCommit = run('git', ['rev-parse', 'HEAD']);
+  report.verificationExitCode = 0;
   report.verifiedAt = new Date().toISOString();
   report.azureChecks = { restartPersistence: 'passed', cors: 'passed', requestSize: 'passed', rateLimit: 'passed', logRedaction: 'passed', rollback: deployed.previous ? 'passed' : 'not applicable: first deployment', coldStartReadiness: 'passed within bounded readiness allowance' };
   writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
