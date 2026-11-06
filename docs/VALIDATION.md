@@ -14,7 +14,7 @@ Validated API source: `a0c0c37949b280309416dbc435e331f547299806` (`local-backend
 - The image ran as UID 1000, excluded development/secrets/source trees, survived
   restart with identical chain-derived inventory and rejected wrong-chain startup.
 - Client-quota tests cover Azure's appended address, changing spoofed prefixes,
-  separate real clients and direct-server rejection of forwarded identity.
+  distinct client addresses and direct-server rejection of forwarded identity.
 
 Image: `sha256:e43b077c96234921599ebe9b9902feecb1c63745d3b7d68206cddcbff77a14c2`. Evidence is in
 [local-validation.json](../deployments/local-validation.json). These transactions
@@ -50,23 +50,45 @@ Evidence: [manifest](../deployments/sepolia.json),
 
 ## Azure release gate
 
-The new API image is deployed and Sepolia readiness passed. Its HTTPS transaction
-and platform checks are still running; full success is not yet claimed for this
-revision. Deployment metadata is in [azure.json](../deployments/azure.json), and
-[azure-progress.json](../deployments/azure-progress.json) identifies the pending gate.
-The previously completed 16-transaction HTTPS record remains in
-[azure-smoke.json](../deployments/azure-smoke.json) until replaced by the new run.
+`make deploy-azure`: **exit 0**. API source: `85039ec0993e23885c5036e03572c8ab6a692745`.
+The deployment uses the validated Sepolia manifest and original contracts.
 
+- Sixteen additional real Sepolia transactions were prepared through the HTTPS
+  API and signed locally. Direct purchase/buyer bounds, self-outbid/outbid,
+  credit withdrawal, funded settlement and no-bid recovery passed.
+- Original replicas were fully replaced before comparing identical inventory.
+  Post-restore state still has no active lot or bid/refund liability, and the
+  25-token held-for-review balance remains in the jar.
+- The live rate test received HTTP 429 with exhausted quota headers after
+  118 requests in 9.598 seconds. Earlier checks had already consumed some
+  of the 120/minute quota. Changing untrusted forwarded prefixes did not bypass it.
+- Denied-origin CORS, HTTP 413 request-size enforcement and sampled console-log
+  credential checks passed. Allowed-origin behavior is unit-tested; the future
+  frontend's actual origin has not yet been configured or browser-tested.
+- Rollback served the recorded previous image/version (`eafc5c6`) successfully;
+  restoration returned to the new digest/version and identical inventory.
+- Health/readiness/OpenAPI returned HTTP 200 for the intended API version.
+  Readiness passed within its bounded allowance; no standalone scale-to-zero
+  latency benchmark is claimed.
+
+The preceding release's transaction run passed but its rate test failed because
+it counted ingress proxy connections. Explicit Azure ingress mode now keys quotas
+from the validated rightmost address appended by Azure. Direct servers ignore
+forwarded identity. Both spoof resistance and independent client quotas are tested.
+
+Restored revision: `unijar-api--restore-1793939188904`.
+Image: `sha256:00f8a39aac4b8bf77fc040a9b4a420a3fa0b809a2595ee6be81202d76a29dcd0`.
+Verified at: `2026-11-06T04:27:30.916Z`.
+
+Evidence: [deployment](../deployments/azure.json),
+[transactions and platform checks](../deployments/azure-smoke.json), and
+[completed checkpoint](../deployments/azure-progress.json).
 Live [health](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/healthz),
 [readiness](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/readyz),
 and [OpenAPI](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/openapi.json).
 
-The preceding release completed transactions but failed its rate-limit check.
-Live headers showed alternating ingress-proxy counters. Explicit Azure ingress
-mode now uses only the validated rightmost address appended by the platform;
-caller-controlled prefixes cannot select a different quota. The new release must
-pass that live test plus restart persistence, CORS, request limits, log redaction
-and rollback before the gate is complete. Historical passing records remain in Git.
+`make verify-azure` rechecks the saved receipts and repeats platform checks without
+signing more transactions. `make smoke-azure` replays testnet transaction flows.
 
 ## Additional static review
 
@@ -104,3 +126,9 @@ direct fill. The public smoke tool refreshes observations through a real,
 locally signed fixture liquidity mint. No signing key or Anvil service is hosted
 by Azure. Frontend, keepers, database, indexer, cross-chain support and production
 economic/security validation are outside this phase.
+
+The deployed sale contract supports one approval mode per asset at a time; the
+API reports that exclusive capability and actual classifications. Simultaneous
+dual-mode approval would require a separately tested contract change/deployment.
+Wallet signing in a browser and the PRD frontend acceptance criteria remain
+unimplemented and unverified in this backend phase.

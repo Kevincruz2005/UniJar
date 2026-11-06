@@ -13,14 +13,14 @@ and [testnet data sources](docs/TESTNET.md) describe the current implementation.
 
 1. Local application and Docker validation passed at `local-backend-v2` (`a0c0c37`): 27 contract tests, 11 API tests and 32 confirmed local transactions.
 2. Ten source-verified Sepolia contracts, including the held-for-review token, and 16 successful expanded smoke transactions are recorded in `deployments/`.
-3. The new Azure API is ready on Sepolia; its expanded HTTPS transaction/platform validation is running. The gate remains pending until those checks finish. Live endpoints: [health](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/healthz) and [OpenAPI](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/openapi.json).
+3. Azure validation passed for API build `85039ec`: 16 confirmed HTTPS-prepared transactions, restart persistence, client rate limits, request-size enforcement, log redaction and rollback/restore. Live endpoints: [health](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/healthz) and [OpenAPI](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/openapi.json).
 
 The main history was consolidated into substantial local-to-cloud milestones at
 the user's request. Original history is retained on
 `archive/before-local-first-rewrite`; the original deployed source is retained by
 `deployment-source-62ab150`. Public manifests retain that original source SHA.
-When publishing the repository, publish the deployed-source tag with `main` so
-that provenance remains resolvable. No remote history has been force-pushed.
+The deployed-source and local/Azure validation tags are published with `main`
+so provenance remains resolvable. No remote history has been force-pushed.
 
 ## Run locally
 
