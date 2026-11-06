@@ -11,11 +11,16 @@ live-role operator controls. Wallet actions use injected EVM wallets and verifie
 unsigned API preparations. [Validation evidence](docs/VALIDATION.md)
 and [testnet data sources](docs/TESTNET.md) describe the current implementation.
 
+**Live app:** [UniJar on Azure](https://unijar-web.purplewater-5aec7560.centralindia.azurecontainerapps.io)
+· [Documentation](https://unijar-web.purplewater-5aec7560.centralindia.azurecontainerapps.io/docs)
+
 ## Validation order and current status
 
 1. Local application and Docker validation passed at `local-backend-v2` (`a0c0c37`): 27 contract tests, 11 API tests and 32 confirmed local transactions.
 2. Ten source-verified Sepolia contracts, including the held-for-review token, and 16 successful expanded smoke transactions are recorded in `deployments/`.
 3. Azure validation passed for API build `85039ec`: 16 confirmed HTTPS-prepared transactions, restart persistence, client rate limits, request-size enforcement, log redaction and rollback/restore. Live endpoints: [health](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/healthz) and [OpenAPI](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/openapi.json).
+4. Frontend source `cbaab02` passed nine unit/server tests, six production-page browser checks and five local wallet scenarios with 20 confirmed Anvil transactions before deployment.
+5. The deployed HTTPS frontend passed all six public browser checks and four applicable Sepolia wallet scenarios with 16 confirmed transactions. Receipts and final zero-liability state are in [frontend-validation.json](deployments/frontend-validation.json). Actual MetaMask/Rabby extension and physical-device tests remain manual checks.
 
 The main history was consolidated into substantial local-to-cloud milestones at
 the user's request. Original history is retained on

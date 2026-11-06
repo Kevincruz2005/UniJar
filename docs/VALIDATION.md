@@ -63,8 +63,8 @@ The deployment uses the validated Sepolia manifest and original contracts.
   118 requests in 9.598 seconds. Earlier checks had already consumed some
   of the 120/minute quota. Changing untrusted forwarded prefixes did not bypass it.
 - Denied-origin CORS, HTTP 413 request-size enforcement and sampled console-log
-  credential checks passed. Allowed-origin behavior is unit-tested; the future
-  frontend's actual origin has not yet been configured or browser-tested.
+  credential checks passed. Allowed-origin behavior was unit-tested at this
+  backend release; actual frontend-origin verification is recorded below.
 - Rollback served the recorded previous image/version (`eafc5c6`) successfully;
   restoration returned to the new digest/version and identical inventory.
 - Health/readiness/OpenAPI returned HTTP 200 for the intended API version.
@@ -76,7 +76,8 @@ it counted ingress proxy connections. Explicit Azure ingress mode now keys quota
 from the validated rightmost address appended by Azure. Direct servers ignore
 forwarded identity. Both spoof resistance and independent client quotas are tested.
 
-Restored revision: `unijar-api--restore-1793939188904`.
+Backend rollback-test restored revision: `unijar-api--restore-1793939188904`.
+The current revision after the frontend CORS update is in [azure.json](../deployments/azure.json).
 Image: `sha256:00f8a39aac4b8bf77fc040a9b4a420a3fa0b809a2595ee6be81202d76a29dcd0`.
 Verified at: `2026-11-06T04:27:30.916Z`.
 
@@ -160,3 +161,41 @@ Wallet scenarios inject an EIP-1193 test provider. Encrypted disposable
 keystores sign in the Node test process; browser bundles and traces receive no
 private keys. Actual MetaMask/Rabby extension and physical-device tests remain
 manual acceptance items. QR WalletConnect is not implemented or claimed.
+
+## Frontend Azure release
+
+Live frontend: [UniJar](https://unijar-web.purplewater-5aec7560.centralindia.azurecontainerapps.io).
+Deployed source: `cbaab02c829cc983736bf577982e9043de1a870e`.
+The [frontend manifest](../deployments/frontend.json) records the exact image
+digest and ready revision. The existing API image and all original contracts
+were preserved; only the actual frontend origin was added to API CORS.
+
+- Six public browser checks passed against the HTTPS deployment, including
+  mobile navigation and deep-link reloads of documentation pages.
+- Four applicable wallet scenarios passed against real Sepolia through the
+  deployed frontend/API: wallet/network/account-change/rejection handling,
+  direct approval and purchase, fully funded self-outbid/outbid/refund/settlement,
+  and no-bid recovery to the original jar.
+- Sixteen transactions have independently confirmed successful receipts.
+  Direct treasury/recipient transfers, funded auction proceeds and exact
+  recovery matched separate onchain balance reads.
+- Frontend health and API readiness returned 200 for their intended builds.
+  The actual frontend origin and transaction preflight passed; an unrelated
+  origin received no allowed-origin response header.
+- Final block `12075348`: active lot, bid liability and refund liability were
+  all zero; admissions were open, adoption valid and all 25 held-for-review
+  tokens remained in the jar. API inventory matched independent block-tagged
+  reads for every configured jar and releaser balance.
+
+The [release evidence](../deployments/frontend-validation.json) contains the
+transaction hashes, blocks, source identities and test counts. Reproduce public
+checks with the live URL in `BROWSER_BASE_URL` and `public.spec.ts`. Replaying
+`wallet.spec.ts` with `WALLET_TEST_NETWORK=sepolia` uses the locally encrypted,
+funded disposable accounts and changes real testnet state.
+
+The staleness time-advancement scenario passed on Anvil and was explicitly
+skipped on Sepolia; no public-chain time manipulation or public staleness-browser
+test is claimed. Browser wallet scenarios used the injected EIP-1193 test
+adapter described above. Real wallet extensions and physical devices remain
+manual acceptance items, so this release is not a claim that every PRD
+acceptance criterion has been completed.
