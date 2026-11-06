@@ -54,7 +54,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       // or navigation to the actual created lot. Keep writes locked meanwhile.
       backgroundRefresh = true;
       setRefreshing(true);
-      void query.invalidateQueries().catch(() => undefined).finally(() => { lock.current = false; setRefreshing(false); });
+      const refreshKeys = intent.action === 'approvePayout' ? ['credits'] : intent.action === 'approveFeeAsset' ? ['fee-account'] : intent.action === 'payForReceipt' ? ['fee-account', 'fee-source', 'inventory'] : undefined;
+      void query.invalidateQueries({ predicate: entry => !refreshKeys || refreshKeys.includes(String(entry.queryKey[0])) }).catch(() => undefined).finally(() => { lock.current = false; setRefreshing(false); });
       return { hash, lotId };
     } catch (error) {
       setTx({ status: 'failed', hash, action: intent.action, message: hash ? `Confirmation could not be completed: ${readable(error)} Check the transaction before retrying.` : readable(error) });
