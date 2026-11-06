@@ -33,8 +33,18 @@ async function preflight() {
   const prices: Record<string, unknown[]> = {};
   for (const service of ['Container Registry', 'Azure Container Apps', 'Log Analytics']) {
     const url = new URL('https://prices.azure.com/api/retail/prices'); url.searchParams.set('$filter', `serviceName eq '${service}' and armRegionName eq '${location}' and priceType eq 'Consumption'`);
-    const response = await fetch(url, { signal: AbortSignal.timeout(20000) }); assert.ok(response.ok, 'Pricing lookup failed');
-    const data = await response.json() as { Items: any[] };
+    let data: { Items: any[] } | undefined;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const response = await fetch(url, { signal: AbortSignal.timeout(30000) }); assert.ok(response.ok, 'Pricing lookup failed');
+        data = await response.json() as { Items: any[] }; break;
+      } catch {
+        if (attempt === 2) throw new Error(`Pricing lookup unavailable for ${service} after three bounded attempts`);
+        console.log(`Retrying ${service} retail pricing lookup`);
+        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+      }
+    }
+    assert.ok(data, 'Pricing lookup returned no data');
     prices[service] = data.Items.filter(x => x.retailPrice > 0 && (x.meterName === 'Basic Registry Unit' || ['Standard vCPU Active Usage', 'Standard Memory Active Usage', 'Analytics Logs Data Ingestion'].includes(x.meterName))).map(({ meterName, retailPrice, unitOfMeasure, currencyCode }) => ({ meterName, retailPrice, unitOfMeasure, currencyCode }));
   }
   writeFileSync(resolve(root, '.local/azure-prices.json'), JSON.stringify(prices, null, 2));
