@@ -61,9 +61,9 @@ async function preflight() {
   console.log('Cost model: Basic ACR runs continuously; compute scales 0–1 (0.25 vCPU/0.5 GiB); logs capped at 0.1 GB/day; requests, data transfer and external RPC can add charges. Free grants and student credits are not assumed.');
   return account.id as string;
 }
-async function waitReady(url: string) {
+async function waitReady(url: string, version?: string) {
   for (let attempt = 0; attempt < 40; attempt++) {
-    try { const r = await fetch(`${url}/readyz`, { signal: AbortSignal.timeout(15000) }); if (r.ok) return; } catch { /* bounded cold-start retry */ }
+    try { const r = await fetch(`${url}/readyz`, { signal: AbortSignal.timeout(15000) }); if (r.ok) { const body = await r.json(); if (!version || body.version === version) return; } } catch { /* bounded cold-start retry */ }
     await new Promise(r => setTimeout(r, Math.min(2000 + attempt * 500, 10000)));
   }
   throw new Error('HTTPS readiness did not pass within the cold-start allowance');
@@ -71,7 +71,7 @@ async function waitReady(url: string) {
 async function smoke(runTransactions = true) {
   if (existsSync(resolve(root, '.local/sepolia.env'))) process.loadEnvFile(resolve(root, '.local/sepolia.env'));
   const deployed = JSON.parse(readFileSync(resolve(root, 'deployments/azure.json'), 'utf8'));
-  await waitReady(deployed.url);
+  await waitReady(deployed.url, deployed.sourceCommit);
   const reportPath = resolve(root, 'deployments/azure-smoke.json');
   if (runTransactions) {
     run(resolve(root, 'backend/node_modules/.bin/tsx'), ['backend/tools/smoke.ts'], { timeout: 1200000, env: { ...process.env, CHAIN_ID: '11155111', API_URL: deployed.url } });
@@ -101,7 +101,7 @@ async function smoke(runTransactions = true) {
     if (replacementReady(replicasAfter)) break;
   }
   assert.ok(replacementReady(replicasAfter), 'Original replicas must be gone and every replacement ready before checking persisted state');
-  await waitReady(deployed.url);
+  await waitReady(deployed.url, deployed.sourceCommit);
   const afterResponse = await fetch(`${deployed.url}/v1/inventory`); assert.equal(afterResponse.status, 200);
   const after = await afterResponse.json(); assert.deepEqual(after.data, before.data);
   const health = await (await fetch(`${deployed.url}/healthz`)).json(); assert.equal(health.version, deployed.sourceCommit); assert.equal(health.chainId, 11155111);
@@ -132,11 +132,12 @@ async function smoke(runTransactions = true) {
   if (deployed.previous?.revision && deployed.previous.revision !== deployed.revision) {
     // Single mode safely rolls traffic to each newly ready revision.
     try {
-      az(['containerapp', 'update', '--name', 'unijar-api', '--resource-group', groupName, '--image', deployed.previous.image, '--revision-suffix', `rollback-${Date.now()}`], 600000);
-      await waitReady(deployed.url);
+      const rolled = az(['containerapp', 'update', '--name', 'unijar-api', '--resource-group', groupName, '--image', deployed.previous.image, '--revision-suffix', `rollback-${Date.now()}`], 600000);
+      assert.equal(rolled.properties.template.containers[0].image, deployed.previous.image);
+      await waitReady(deployed.url, deployed.previous.sourceCommit);
     } finally {
       const restored = az(['containerapp', 'update', '--name', 'unijar-api', '--resource-group', groupName, '--image', deployed.image, '--revision-suffix', `restore-${Date.now()}`], 600000);
-      await waitReady(deployed.url); deployed.revision = restored.properties.latestReadyRevisionName;
+      await waitReady(deployed.url, deployed.sourceCommit); deployed.revision = restored.properties.latestReadyRevisionName;
       writeFileSync(resolve(root, 'deployments/azure.json'), JSON.stringify(deployed, null, 2) + '\n');
     }
   }
@@ -186,7 +187,7 @@ async function main() {
   try {
     run('docker', ['run', '-d', '--rm', '--name', 'unijar-preflight', '--network', 'host', '--env-file', envFile, `unijar:${sourceCommit}`], { env: dockerEnv });
     const localUrl = dockerEnv.DOCKER_HOST?.includes('unijar-docker') ? 'http://127.0.0.1:18080' : 'http://127.0.0.1:8080';
-    await waitReady(localUrl); assert.equal(run('docker', ['exec', 'unijar-preflight', 'id', '-u'], { env: dockerEnv }), '1000');
+    await waitReady(localUrl, sourceCommit); assert.equal(run('docker', ['exec', 'unijar-preflight', 'id', '-u'], { env: dockerEnv }), '1000');
   } finally { try { run('docker', ['stop', 'unijar-preflight'], { env: dockerEnv }); } catch { /* may not have started */ } unlinkSync(envFile); }
   }
   const parameters = ['--location', location, '--template-file', 'infra/main.bicep', '--parameters', `location=${location}`, `groupName=${groupName}`];
@@ -222,9 +223,9 @@ async function main() {
   writeFileSync(secure, JSON.stringify({ '$schema': 'https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#', contentVersion: '1.0.0.0', parameters: { rpcUrl: { value: process.env.SEPOLIA_RPC_URL } } }), { mode: 0o600 }); chmodSync(secure, 0o600);
   try {
     const result = az(['deployment', 'sub', 'create', '--name', 'unijar-api', ...parameters, `@${secure}`, 'deployApplication=true', `imageDigest=${digest}`, `sourceCommit=${sourceCommit}`, `corsOrigins=${process.env.CORS_ORIGINS ?? ''}`], 900000);
-    const url = `https://${result.properties.outputs.fqdn.value}`; await waitReady(url);
+    const url = `https://${result.properties.outputs.fqdn.value}`; await waitReady(url, sourceCommit);
     const app = az(['containerapp', 'show', '--name', 'unijar-api', '--resource-group', groupName]);
-    const deployment = { url, resourceGroup: groupName, subscription, resourceId: app.id, location, sourceCommit, contractSourceCommit: m.sourceCommit, imageDigest: digest, image: `${registry}.azurecr.io/unijar@${digest}`, revision: app.properties.latestReadyRevisionName, timestamp: new Date().toISOString(), previous: previous ? { image: previous.image, revision: previous.revision } : null };
+    const deployment = { url, resourceGroup: groupName, subscription, resourceId: app.id, location, sourceCommit, contractSourceCommit: m.sourceCommit, imageDigest: digest, image: `${registry}.azurecr.io/unijar@${digest}`, revision: app.properties.latestReadyRevisionName, timestamp: new Date().toISOString(), previous: previous ? { image: previous.image, revision: previous.revision, sourceCommit: previous.sourceCommit } : null };
     writeFileSync(resolve(root, 'deployments/azure.json'), JSON.stringify(deployment, null, 2) + '\n');
   } finally { unlinkSync(secure); }
   await smoke();
