@@ -41,6 +41,9 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       setTx({ status: 'pending', hash, action: intent.action });
       const reader = createPublicClient({ chain, transport: custom(client) });
       const receipt = await reader.waitForTransactionReceipt({ hash, confirmations: 1, timeout: 180000, pollingInterval: chain.id === 31337 ? 100 : 4000 });
+      hash = receipt.transactionHash;
+      const confirmed = await reader.getTransaction({ hash });
+      if (confirmed.from.toLowerCase() !== sender.toLowerCase() || confirmed.to?.toLowerCase() !== prepared.to.toLowerCase() || confirmed.input.toLowerCase() !== prepared.data.toLowerCase() || confirmed.value !== 0n) throw new Error('The transaction was replaced by a different request. Inspect the transaction before continuing.');
       if (receipt.status !== 'success') throw new Error('The transaction reverted. No changes from this transaction were applied.');
       setTx({ status: 'confirmed', hash, action: intent.action });
       await query.invalidateQueries();
@@ -63,9 +66,9 @@ export function WalletButton() {
   useEffect(() => { if (open) dialog.current?.showModal(); else dialog.current?.close(); }, [open]);
   return <>
     <button className={`wallet-button ${isConnected && chainId !== chain.id ? 'wrong-network' : ''}`} onClick={() => setOpen(true)} aria-haspopup="dialog">{isConnected ? chainId !== chain.id ? 'Wrong network' : short(address!) : 'Connect wallet'}<span className="wallet-dot" /></button>
-    <dialog ref={dialog} className="wallet-dialog" onCancel={() => setOpen(false)} onClick={e => { if (e.target === e.currentTarget) setOpen(false); }}>
+    <dialog ref={dialog} className="wallet-dialog" aria-labelledby="wallet-panel-title" onCancel={() => setOpen(false)} onClick={e => { if (e.target === e.currentTarget) setOpen(false); }}>
       <button className="dialog-close icon-button" onClick={() => setOpen(false)} aria-label="Close wallet panel">×</button>
-      <span className="eyebrow">YOUR WALLET</span><h2>{isConnected ? 'You’re connected.' : 'Connect to UniJar.'}</h2>
+      <span className="eyebrow">YOUR WALLET</span><h2 id="wallet-panel-title">{isConnected ? 'You’re connected.' : 'Connect to UniJar.'}</h2>
       <p className="muted">{isConnected ? `${chain.name} · ${short(address!)}` : 'Browse freely. Connect when you’re ready to buy, bid or withdraw.'}</p>
       {isConnected ? <div className="stack">
         <code className="address-wrap">{address}</code>
