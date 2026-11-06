@@ -33,6 +33,16 @@ test.describe('real-chain browser wallet journeys', () => {
     await page.getByRole('button', { name: /Switch to/ }).click();
     await expect(page.locator('header .wallet-button')).toContainText(accounts.operator!.slice(0, 6));
     await page.getByRole('button', { name: 'Close wallet panel' }).click();
+    await page.route('**/v1/transactions/prepare', async route => {
+      const response = await route.fetch();
+      await page.evaluate(() => (window as any).__testWallet.select('buyer-a'));
+      await route.fulfill({ response });
+    });
+    await page.getByRole('button', { name: 'Pause admissions' }).click();
+    await expect(page.getByText(/Wallet or network changed/)).toBeVisible();
+    expect(wallet.submitted).toHaveLength(0);
+    await page.unroute('**/v1/transactions/prepare');
+    await selectWallet(page, 'operator');
     await page.evaluate(() => (window as any).__testWallet.reject());
     await page.getByRole('button', { name: 'Pause admissions' }).click();
     await expect(page.getByText(/You declined the wallet request/)).toBeVisible();
