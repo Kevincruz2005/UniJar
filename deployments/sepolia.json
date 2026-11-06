@@ -1,0 +1,125 @@
+{
+  "chainId": 11155111,
+  "sourceCommit": "62ab1501d04a1febfc51042951c9480f9bfd786f",
+  "controlledFixture": true,
+  "toolchain": {
+    "foundry": "1.9.0",
+    "mainSolc": "0.8.29",
+    "mainEvm": "cancun",
+    "oracleSolc": "0.7.6",
+    "oracleEvm": "istanbul",
+    "optimizerRuns": "200"
+  },
+  "addresses": {
+    "jar": "0x21888a3e77f71c93fa7946b7b9879bd9e50acae0",
+    "releaser": "0x64af2a1567ce1f0ebc84144542b945655980381d",
+    "payout": "0xc827b5f0e85a4d4e44ac15a58085394bb64b0837",
+    "directAsset": "0xb71ec7d73cc298f51a5d25ccb23dc235f6832a2b",
+    "auctionAsset": "0x056aabd49eae7b678cc89427dce84e5fff199f01",
+    "factory": "0xf30240de5773de68819f60de163b758c834db18d",
+    "pool": "0x791a228182FC3f0aB61a07b4A7FE0a1504C41cBf",
+    "reader": "0x2ea06589b162d9ca07bdf6342983bcfb6afd8e34",
+    "fixture": "0x87298fa3c41ff04d93db498c91cf9d15fe727bff"
+  },
+  "roles": {
+    "operator": "0x604095F916e24FF354eD9DAB27b2a6638DE28412",
+    "treasury": "0x57FDd22D840e61A4f93238b28351420B97056A90",
+    "buyerA": "0x44b45a7a068ffAF4504c540e3939a3819f1912c4",
+    "buyerB": "0x900302dCC55CBa806B6AAA4175698a2F1195d018"
+  },
+  "deployments": {
+    "payout": {
+      "address": "0xc827b5f0e85a4d4e44ac15a58085394bb64b0837",
+      "block": "12071714",
+      "transactionHash": "0x070322655a437f3a238a404a9b8812ffad2134402f41bd743410ef6cf896ecb4",
+      "codeHash": "0x34f67404fee7d212fa251f3497965b78a91f3273967dd2a345ababeeabe47f32"
+    },
+    "directAsset": {
+      "address": "0xb71ec7d73cc298f51a5d25ccb23dc235f6832a2b",
+      "block": "12071716",
+      "transactionHash": "0x24db6e365d3580d418f48e07dfc8cec74e5e29e1b2920c8d6578f7c6408933a8",
+      "codeHash": "0xfec8e14eb38ba6f3581e2bb793470172b15a3ad16f86b66c53fa66223c110814"
+    },
+    "auctionAsset": {
+      "address": "0x056aabd49eae7b678cc89427dce84e5fff199f01",
+      "block": "12071718",
+      "transactionHash": "0xc444388dd535a2aa1abfe6825e95f87720d46c44bb1fc6bdbc80b7b720e6d2e9",
+      "codeHash": "0xfec8e14eb38ba6f3581e2bb793470172b15a3ad16f86b66c53fa66223c110814"
+    },
+    "factory": {
+      "address": "0xf30240de5773de68819f60de163b758c834db18d",
+      "block": "12071720",
+      "transactionHash": "0xf8e1f916bb095207f90a2e0dbfe53f6689bfb626299d4f0adac1281b104a02df",
+      "codeHash": "0xdc9f619b949b4f6ac2f4728e586894736e8de40cc3dfe4ed3e0cef8c8cf780f7"
+    },
+    "pool": {
+      "address": "0x791a228182FC3f0aB61a07b4A7FE0a1504C41cBf",
+      "block": "12071722",
+      "transactionHash": "0xc6383113272875c5cfcc56e175c860f740ad30fee100297ede64effffe63f01b",
+      "codeHash": "0xb854b9a378f1b0fab05b8cf3ce91e590ba26710980c26534a378b7d470511d52"
+    },
+    "fixture": {
+      "address": "0x87298fa3c41ff04d93db498c91cf9d15fe727bff",
+      "block": "12071728",
+      "transactionHash": "0x3c482d41bfc843abfcb3053ec7b543ed312b064ef7953255e3b99142d88b910b",
+      "codeHash": "0x51240a6f3d2e57fe652ac1176acd20ca75297c62b2e6e83141f00662fb405658"
+    },
+    "reader": {
+      "address": "0x2ea06589b162d9ca07bdf6342983bcfb6afd8e34",
+      "block": "12071730",
+      "transactionHash": "0x0bcbf06080519b171611df09084e1dd157ad69165fa05659cb8c4b25fd06e36f",
+      "codeHash": "0xb59904d0578de6a6e1da8100cb55dc22748bbe02d34d4980a27e9f187aa74706"
+    },
+    "jar": {
+      "address": "0x21888a3e77f71c93fa7946b7b9879bd9e50acae0",
+      "block": "12071732",
+      "transactionHash": "0x447c8cfca864b250d4a4e47d6cfcb4e11a8df0ba09a8f95a4bf7577af62b92b1",
+      "codeHash": "0x831568d8f5c1e5912f3c775b406b59bc7f38f0f72d4f390e480104d33856ed2b"
+    },
+    "releaser": {
+      "address": "0x64af2a1567ce1f0ebc84144542b945655980381d",
+      "block": "12071734",
+      "transactionHash": "0x9fe6f66fcc6c1d8b3a41db8c1c89529ee86c6e2241b25050abc6a880bd2b55f6",
+      "codeHash": "0x84639067fa7fb7e37d480567b9c6db1ab7bc3c901089eb0f49bd32146c05d965"
+    }
+  },
+  "transactions": {
+    "deploy:payout": "0x070322655a437f3a238a404a9b8812ffad2134402f41bd743410ef6cf896ecb4",
+    "deploy:directAsset": "0x24db6e365d3580d418f48e07dfc8cec74e5e29e1b2920c8d6578f7c6408933a8",
+    "deploy:auctionAsset": "0xc444388dd535a2aa1abfe6825e95f87720d46c44bb1fc6bdbc80b7b720e6d2e9",
+    "deploy:factory": "0xf8e1f916bb095207f90a2e0dbfe53f6689bfb626299d4f0adac1281b104a02df",
+    "createPool": "0xc6383113272875c5cfcc56e175c860f740ad30fee100297ede64effffe63f01b",
+    "initializePool": "0x60d39099d10f9cc8e7458ae82f004a4d1507b8bc50df377110980a8761f30777",
+    "observationCapacity": "0x87da8d52d4837cd47bdb0ce335bdb794504e263448c626c1b8fae689ea2997cd",
+    "deploy:fixture": "0x3c482d41bfc843abfcb3053ec7b543ed312b064ef7953255e3b99142d88b910b",
+    "deploy:reader": "0x0bcbf06080519b171611df09084e1dd157ad69165fa05659cb8c4b25fd06e36f",
+    "deploy:jar": "0x447c8cfca864b250d4a4e47d6cfcb4e11a8df0ba09a8f95a4bf7577af62b92b1",
+    "deploy:releaser": "0x9fe6f66fcc6c1d8b3a41db8c1c89529ee86c6e2241b25050abc6a880bd2b55f6",
+    "adoptReleaser": "0xa4b6c0de70bfbc4cd675da917d74d7afbf1a16262a0937a26ad2fb3f635b6983",
+    "directMode": "0x6e349f937978008fdc5e71fc6f434409930d06d8161ce08f042f60ef0b9a0bd4",
+    "auctionMode": "0x11a55990e40eb17bd0b75c749b8e652224a9ec5298d46ccf6f271511968e98d4",
+    "policy": "0xc1ced1abb78a88349bfe22e91fc54b0b801f53a6431611b53f9a2e020995d732",
+    "liquidityUSD": "0xab381687f2b4190f9938ad3f36ac7ec3dc9a209c453b29ddf2a960986742d3e4",
+    "liquidityFEE": "0x095a7fe29cc62898242e3445af055ff8d525fe9a28f36910d2b85659c2a11757",
+    "jarFEE": "0x79edfbfb2d8a74c565dd3ad4b8f085016e5c9f7c7974d5da3bdf26595d464381",
+    "jarALT": "0xcc6b9cd27044b2a6b8e9856995d7e7298c163a48761e7fe6e980975ce0ef4953",
+    "buyerAUSD": "0xd592c0ea7b27858fd350376b93b42c4cadc1dcad2e2322b6cb723da27142a51f",
+    "buyerBUSD": "0x8c4a02d4ddcdb1646b4286ed1e3c1c9ebcde77a5a139261a41e000bebe37dff3",
+    "approveFixture:usd": "0x0cdcc67ea9c96959c7148491dc269d1a895d9353ff1cff142cedc49db3db72dc",
+    "approveFixture:fee": "0x614e2105343eae61a6979a6aa05d93f216acb75b84db260fe30ba6bff20dea54",
+    "seedLiquidity": "0xf27b0bf4a1ac7c29b40eec2347f0530c8c812edaf35afd1cb1f96e18781cc76f",
+    "freshLiquidity:1793911308": "0x960e0059257333ad28820e14ebfefb0e04cfa9476341e1c935dd41d64bdf46f6"
+  },
+  "policy": {
+    "pool": "0x791a228182FC3f0aB61a07b4A7FE0a1504C41cBf",
+    "fee": 3000,
+    "window": 1800,
+    "maxAge": 600,
+    "minLiquidity": "1000000000000",
+    "maxQuantity": "100000000000000000000",
+    "maxTickDeviation": 100,
+    "discountBps": 100,
+    "maxDuration": 7200,
+    "version": "1"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "network": "Sepolia controlled test fixtures",
+  "accounts": {
+    "operator": "0x604095F916e24FF354eD9DAB27b2a6638DE28412",
+    "treasury": "0x57FDd22D840e61A4f93238b28351420B97056A90",
+    "buyer-a": "0x44b45a7a068ffAF4504c540e3939a3819f1912c4",
+    "buyer-b": "0x900302dCC55CBa806B6AAA4175698a2F1195d018"
+  }
+}
