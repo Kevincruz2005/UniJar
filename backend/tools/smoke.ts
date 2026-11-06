@@ -17,8 +17,15 @@ async function main() {
   if (chainId === 11155111 && process.env.API_URL && !url.startsWith('https://')) throw new Error('Public smoke requires HTTPS');
   const hashes: Hex[] = [];
   async function api(path: string, payload?: unknown) {
-    const response = await fetch(`${url}${path}`, { method: payload ? 'POST' : 'GET', headers: payload ? { 'content-type': 'application/json' } : {}, body: payload ? JSON.stringify(payload) : undefined, signal: AbortSignal.timeout(20000) });
-    return { status: response.status, body: await response.json() };
+    for (let attempt = 0; attempt < 3; attempt++) {
+      // Reads and unsigned preparation are safe to retry; signed broadcasts stay outside this helper.
+      const response = await fetch(`${url}${path}`, { method: payload ? 'POST' : 'GET', headers: payload ? { 'content-type': 'application/json' } : {}, body: payload ? JSON.stringify(payload) : undefined, signal: AbortSignal.timeout(20000) });
+      const result = { status: response.status, body: await response.json() };
+      if (response.status !== 503 || attempt === 2) return result;
+      console.log(`Retrying unavailable read/preparation (${attempt + 1}/2)`);
+      await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+    }
+    throw new Error('Unreachable retry state');
   }
   const tokenBalance = async (token: Address, address: Address) => await read(token, abis.token, 'balanceOf', [address]) as bigint;
   const lot = async (id: string) => {
