@@ -4,13 +4,13 @@
   "status": "passed",
   "chainId": 31337,
   "ephemeral": true,
-  "sourceCommit": "008d267b85b6800b42b24d1a93731a72d722bfa7",
+  "sourceCommit": "1ae6336e68b7dea71a5bc23029ef953aa8e38907",
   "contractTestsPassed": 27,
-  "apiTestsPassed": 6,
+  "apiTestsPassed": 10,
   "invariantRuns": 128,
   "invariantCalls": 8192,
   "fuzzRunsPerTest": 256,
-  "imageId": "sha256:f8112381947e32ad11cb556fe26323425ad7bd8c931709def9c85054f9d94feb",
+  "imageId": "sha256:3d4cab87c2bd9878a1425f5ed7a7840c86e6dbe518c457949c5a297eb51d6a4e",
   "containerChecks": [
     "non-root UID 1000",
     "runtime isolation",
@@ -20,61 +20,72 @@
   "flows": [
     {
       "chainId": 31337,
-      "sourceCommit": "008d267b85b6800b42b24d1a93731a72d722bfa7",
+      "apiSourceCommit": "1ae6336e68b7dea71a5bc23029ef953aa8e38907",
+      "expectedTransactionCount": 15,
+      "sourceCommit": "1ae6336e68b7dea71a5bc23029ef953aa8e38907",
       "api": "local ephemeral HTTP API",
       "passed": [
         "chain/config/code",
         "block-tagged reads",
         "direct bounds and sale",
-        "auction outbid/refund/settlement",
+        "auction self-outbid/outbid/refund/settlement",
         "permissionless no-bid recovery",
-        "invalid action/target"
+        "invalid action/target",
+        "live metadata/policies/review inventory"
       ],
       "transactions": [
-        "0x212b3199709dd130b3afd0357b73ce1de448e134b99533604d75a79d2bd47494",
-        "0xa76abf6efbd4844bbbec66867bc47b8ddfb50f796024721d3d38b45884aef35e",
-        "0xfbf3fc64e9725e23dcfc63e6e1cd747346983e388018948c1ed1eb80559132d9",
-        "0x78d44155e995a2d154b2f827e1eb53de952da15c6b1a430877b30394f405914b",
-        "0x18d27c1af69657d7ee5b206e8e28322f1a5cf5028b21c1662f2fd8d080ce26e0",
-        "0x9a263b62fa12aa9f3df80d111f3b3d4f832d68926674103c67715a419fbb32ca",
-        "0xf6952f3d27a28c24a6a52fbc0d036cacfcc21a90650cb4e63948f17cbc293bae",
-        "0x267eeeaf7a0d55d444e5ac091965b7ea1ecfc4604745c6caa80ad4482655e3ab",
-        "0xfa115625be0431d4765a4922759f66418df5737cd4ebc6a74a49d1ea4af5a8bb",
-        "0x4d31d31f040e9f1c55e2f4d8b2fb6ed86f9a5326c41a44b84cf24edfd0106f74",
-        "0x1ade5310962bed3065a3981611d1130cb8459439e520514b3cc3a9f56a20432a",
-        "0x2241c1b221ffa338adc80b97035f7462629dc1ef48aee31ca40d47a55b125989",
-        "0xe511caa4999721f9905d289162bc15b83a7db5281da5a78cd06c7a8cc6e654cb"
+        "0xe5caaab55409494f7a937bf13dd9c683dbe81d727229a61809d4f9b04d193e64",
+        "0x9fee907f69e9f23375cb3e6c474e78210b9422b9e098712677c363205aae65ff",
+        "0xddd6c30019540eaabad6c9f09d7d65402d325776625aee4fee5d415a7b59dbb9",
+        "0xacad158240edce87468af0d566c8e642ed94ec11e0fbf4a0ee7adcf4f5c9bfe5",
+        "0xfecf61b9fef2beef5f41ebd2a039e207a9253a227b60b1d6ed54572ba3b8e70b",
+        "0xddb1b22fd2cfad995a6096164b170858e077294697ad55ea143de8390a74553c",
+        "0xf20d002ef5c6feb9ac8891d57569ee8538dd1843db9f90c502dd599fa0d5bbb9",
+        "0x9bbe6856293e8579e11e3b2efcf3dd72651e343f574d32fcb5ee9fa53efddd4c",
+        "0xff7e4269a626ef56e2f11aa95ba7369315fe84e7d6dc4b650676563ae6f7f4cf",
+        "0xb52352a128d7c595fb20a57b1e1ab5a42fdceb423faa2b973d86a6fe62add2bc",
+        "0x3bc66f9a4b8878373925616443cab236029ef791f5a825d54d6c5e1df78bf676",
+        "0xc21b238a479f61d9f5a0f720c1c0da3f67c26b606c1b03cb23919e4014557304",
+        "0xf6c9f31045184eebf402a2ffc006089c02d5f61e12922cb07cae714c1f3928e0",
+        "0x0454fe9f129f0c8580dd06b542fe8d5bd4281ee84bd90cc12ac2419b96a71238",
+        "0x9595a85709f4f857024353c9c4e6b2aded68802768224670f3875b6b891af517"
       ],
-      "timestamp": "2026-11-06T01:38:20.844Z"
+      "timestamp": "2026-11-06T02:51:21.754Z"
     },
     {
       "chainId": 31337,
-      "sourceCommit": "008d267b85b6800b42b24d1a93731a72d722bfa7",
+      "apiSourceCommit": "1ae6336e68b7dea71a5bc23029ef953aa8e38907",
+      "expectedTransactionCount": 15,
+      "sourceCommit": "1ae6336e68b7dea71a5bc23029ef953aa8e38907",
       "api": "http://127.0.0.1:18080",
       "passed": [
         "chain/config/code",
         "block-tagged reads",
         "direct bounds and sale",
-        "auction outbid/refund/settlement",
+        "auction self-outbid/outbid/refund/settlement",
         "permissionless no-bid recovery",
-        "invalid action/target"
+        "invalid action/target",
+        "live metadata/policies/review inventory"
       ],
       "transactions": [
-        "0xe020595bcc6ded19f8857df3f927b62aafc070b4afe9dc2f71046806d1ed1070",
-        "0x6e2167a0db5fdbc09875ef3434c6329602ca54d8a5f21a372c57320c8c4b0722",
-        "0x7d1d3be1904e2b9824d73c02819ee6d45b25593e5cc02e3d34ad8c1838d400b9",
-        "0x8bc880124ecfce049b052ae98fdbefc3e022485150fef3f524d25c676c484b56",
-        "0x80fefc6549f4582500187888e1b4dcdbd55654b55ed40add791b7241801b25ad",
-        "0xf4eefefcd39b74ab5fa5b38e6b581e696213f45717034dcd5ffdb9760b87b115",
-        "0xf52537602c794de3469f7a20c4b3842f1a9507c11014525c72d49a7c93255126",
-        "0x5d00f3133443813ace0844a7e8dbe613303d86dc150d81a43873579fe65f03a2",
-        "0x87b6713e695de9427f63489b14a5322687dadec0d87168b69db52d974855553d",
-        "0xeb71213a2468d71b791b665317963a4c0a4a1a05898599cc7f2049502b22e180",
-        "0xfc9c7d984a67fe7f610bdc776d06c417de9404e693e7e2a8737ebccb315a1517",
-        "0x4977626a27cd0dc5b62171043b8f344fb181000f0a2c16ed5a096c63a51eb417",
-        "0x83e4d3eb6f33eed69d816486f727fa7ab9c475e361e9c2e046d849297236e84b"
+        "0x4713a56e57c3cc62af3c9fcb0b25ee7d4720b0d28a4655bb0d271b0ef173f558",
+        "0x56b3e12c8616d46532fed7ae96c4a9eed1c91c3fc63b0c8137d2518c1d60df62",
+        "0xb818fd7ddccc5a5d278de406973020fa16df05125087f2172995d98658683493",
+        "0xfdfa321aadc17a464e3609ec08acc056b35822ad2b972106447683be1357569c",
+        "0x4f8cb048541898ebb40adf0fdaf526903dc8d3ed2b2a6a00394e77ef769e1f23",
+        "0xf66eba9a6b8fa3851b4c529bd849af143293a030a61dfa234ff846326bc29552",
+        "0x10008fc17fc271c386824ee246c173b15a06417dcc20737d57949f17e19a6f38",
+        "0xea12c1c40190eb5b0a41761a1b2869281ca5a800648b713573670499c813a601",
+        "0x67a32f3c9446705d40ea757d8c389e465d3dbea164611ab809637cfce5178686",
+        "0x61d1b3a410852d305e79741ea673d288ea779531e1df13bae0b259e755244f70",
+        "0xe5c8f85904d567ba8a339d209a9d9e8d1d5dfc7f74acc4d57ef096e954a56aeb",
+        "0xeb6cb9286e21cefa1aed5a87c0bae632f01c180dcde54729842fd6c335713c7d",
+        "0x908e21741c9e220e8780fd49d73dfb1c42e5ebdf81d637312a5923093cc02f99",
+        "0xdd5acd207425dc57eaaf0de4c076492371af84400e6706155e2b8401d7374ac0",
+        "0x7817eda501ed58217e5549f8a32453c6ee0ec45e04022025a0122d26b8293d6f"
       ],
-      "timestamp": "2026-11-06T01:39:13.946Z"
+      "timestamp": "2026-11-06T02:52:19.450Z"
     }
-  ]
+  ],
+  "validatedAt": "2026-11-06T02:52:23.178873+00:00"
 }
