@@ -12,7 +12,7 @@ mkdir -p "$archive"
 for file in .local/local.pending.json deployments/local.json; do
   if [[ -f "$file" ]]; then mv "$file" "$archive/$(basename "$file")"; fi
 done
-.tools/anvil --accounts 0 --host 127.0.0.1 --port 18545 --chain-id 31337 --hardfork cancun --silent > "$archive/anvil.log" 2>&1 &
+.tools/anvil --accounts 0 --host 127.0.0.1 --port 18545 --chain-id 31337 --timestamp "$(($(date +%s) - 1900))" --hardfork cancun --silent > "$archive/anvil.log" 2>&1 &
 anvil_pid=$!
 api_pid=''
 web_pid=''
@@ -30,9 +30,22 @@ for address in json.loads(pathlib.Path('.local/local-accounts.json').read_text()
         assert 'error' not in json.load(response)
 PY
 CHAIN_ID=31337 backend/node_modules/.bin/tsx backend/tools/deploy.ts
+python3 - <<'PY'
+import json,time,urllib.request
+def request(method,params):
+    data=json.dumps({'jsonrpc':'2.0','id':1,'method':method,'params':params}).encode()
+    with urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:18545',data,{'Content-Type':'application/json'}),timeout=3) as response:
+        result=json.load(response)
+        assert 'error' not in result
+        return result['result']
+now=int(time.time())
+if int(request('eth_getBlockByNumber',['latest',False])['timestamp'],16)<now:
+    request('evm_setNextBlockTimestamp',[now])
+    request('evm_mine',[])
+PY
 backend/node_modules/.bin/tsx backend/tools/serve-local.ts &
 api_pid=$!
-UNIJAR_MANIFEST=../deployments/local.json API_PROXY_TARGET=http://127.0.0.1:18081 npm --prefix frontend run dev -- --mode test --port 5174 &
+(cd frontend; exec env UNIJAR_MANIFEST=../deployments/local.json API_PROXY_TARGET=http://127.0.0.1:18081 node_modules/.bin/vite --host 0.0.0.0 --mode test --port 5174) &
 web_pid=$!
 echo 'Anvil-only browser demo: http://localhost:5174. Production builds remain Sepolia-only.'
 wait "$web_pid"
