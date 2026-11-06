@@ -202,7 +202,7 @@ acceptance criterion has been completed.
 
 ## Cream-and-pink visual release
 
-Source `25144e369c248e144d5968809c0a7654e64b7a29` applies the user-selected
+The visual system introduced at `25144e3` applies the user-selected
 Shelby reference from [DESIGN.md](../DESIGN.md). It uses warm cream surfaces,
 brown reading text, plum links, heavy sans-serif headings, mono controls and an
 original pink geometric collection illustration. Proprietary reference fonts
@@ -229,3 +229,26 @@ The [current frontend manifest](../deployments/frontend.json) records the image
 digest and revision. [Design-release evidence](../deployments/frontend-design-validation.json)
 records checks for this version. Real browser extensions and physical devices
 remain manual acceptance items.
+
+
+## Enlarged side-pattern release
+
+Source `2a3ab46c53b1f31bac52a75fd978876aafd64e13` replaces the contained jar
+illustration with original pink curves cropped against the viewport edge. The
+pattern fills a 900px hero at the inspected 1440×900 viewport, while the main
+call to action stays within that first viewport. The headline scales to 120px;
+product and docs titles scale to 76px and 72px. Shared curved rails appear in
+product headings, the documentation gutter and the footer.
+
+The full local gate passed again: nine unit/server tests, six production-page
+browser checks and five wallet scenarios with 20 confirmed Anvil transactions.
+All six public checks also passed against the new Azure build. Manual layout
+checks found no document overflow across landing, inventory, docs and funds
+pages at 320px, 850px and 1440px. On mobile the landing curves move below the
+primary actions and the documentation rail is hidden.
+
+Wallet signing, transaction checks, API code and contracts remain unchanged.
+An API readiness 503 was observed after browser validation; follow-up health,
+readiness and config reads returned 200. This is retained as an operational
+observation rather than hidden by the visual release. Current source/image
+identity and results are in the frontend manifest and design-validation record.
