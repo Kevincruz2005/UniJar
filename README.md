@@ -122,6 +122,13 @@ Signed transaction keys remain local. Images are commit-tagged and deployed by
 digest; actual resource IDs, digest, revision and HTTPS URL are recorded only
 after deployment.
 
+Infrastructure explicitly selects `environmentMode: WorkloadProfiles` with one
+Consumption profile through the 2026-07-01 environment API. Restoring an archived
+environment can take 15–30 minutes; provisioning has a bounded 35-minute allowance.
+After an interrupted cloud deployment, `make resume-azure` reuses the existing
+published image only when its digest matches the previously tested local image,
+its packaged Sepolia manifest matches, and the application source is unchanged.
+
 Basic ACR's Central India retail rate checked on 2026-11-05 UTC was US$0.1666/day
 (about US$5 per 30 days). Compute, logs, HTTP requests, transfer and an external
 RPC may add charges. Free grants, student credit and taxes are not included in

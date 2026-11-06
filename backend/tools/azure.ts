@@ -140,7 +140,7 @@ async function main() {
   } finally { try { run('docker', ['stop', 'unijar-preflight'], { env: dockerEnv }); } catch { /* may not have started */ } unlinkSync(envFile); }
   }
   const parameters = ['--location', location, '--template-file', 'infra/main.bicep', '--parameters', `location=${location}`, `groupName=${groupName}`];
-  const foundation = resuming ? az(['deployment', 'sub', 'show', '--name', 'unijar-foundation']) : az(['deployment', 'sub', 'create', '--name', 'unijar-foundation', ...parameters, 'deployApplication=false'], 900000);
+  const foundation = resuming ? az(['deployment', 'sub', 'show', '--name', 'unijar-foundation']) : az(['deployment', 'sub', 'create', '--name', 'unijar-foundation', ...parameters, 'deployApplication=false'], 2100000);
   assert.equal(foundation.properties.provisioningState, 'Succeeded', 'Foundation must finish before resuming');
   const registry = foundation.properties.outputs.registryName.value;
   const environment = az(['rest', '--method', 'get', '--url', `https://management.azure.com/subscriptions/${subscription}/resourceGroups/${groupName}/providers/Microsoft.App/managedEnvironments/unijar-env?api-version=2026-07-01`]);
