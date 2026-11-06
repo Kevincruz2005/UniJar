@@ -205,3 +205,9 @@ code { font-family: var(--font-mono); font-size: .84em; }
 .skip-link { position: fixed; top: -60px; left: 20px; z-index: 100; padding: 12px; color: var(--paper); background: var(--ink); }
 .skip-link:focus { top: 10px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+/* Curves crop within their own panels; content never sits under the artwork. */
+.side-pattern { overflow: hidden; pointer-events: none; }
+.side-pattern svg { display: block; width: 100%; height: 100%; }
+.site-footer { position: relative; padding-right: 160px; min-height: 160px; }
+.footer-pattern { position: absolute; inset: 0 0 0 auto; width: 96px; }
