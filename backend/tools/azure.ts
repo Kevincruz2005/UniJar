@@ -30,8 +30,16 @@ async function preflight() {
   const quota = usage.value.find((x: any) => x.name.value === 'ManagedEnvironmentCount');
   assert.ok(quota && (existing || quota.currentValue < quota.limit), 'No Container Apps environment quota');
   run('az', ['bicep', 'build', '--file', 'infra/main.bicep', '--outfile', '.local/azure-template.json']);
-  const prices: Record<string, unknown[]> = {};
-  for (const service of ['Container Registry', 'Azure Container Apps', 'Log Analytics']) {
+  const services = ['Container Registry', 'Azure Container Apps', 'Log Analytics'];
+  const snapshotPath = resolve(root, '.local/azure-price-snapshot.json');
+  let snapshot: { location?: string; checkedAt?: string; prices?: Record<string, unknown[]> } = {};
+  try { snapshot = JSON.parse(readFileSync(snapshotPath, 'utf8')); } catch { /* obtain fresh rates below */ }
+  const snapshotAge = Date.now() - Date.parse(snapshot.checkedAt ?? '');
+  const reusable = snapshot.location === location && snapshotAge >= 0 && snapshotAge < 86400000
+    && services.every(service => Array.isArray(snapshot.prices?.[service]) && snapshot.prices![service]!.length > 0);
+  const prices: Record<string, unknown[]> = reusable ? snapshot.prices! : {};
+  if (reusable) console.log(`Using regional retail quotes checked at ${snapshot.checkedAt} (maximum cache age: 24 hours)`);
+  for (const service of reusable ? [] : services) {
     const url = new URL('https://prices.azure.com/api/retail/prices'); url.searchParams.set('$filter', `serviceName eq '${service}' and armRegionName eq '${location}' and priceType eq 'Consumption'`);
     let data: { Items: any[] } | undefined;
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -47,6 +55,7 @@ async function preflight() {
     assert.ok(data, 'Pricing lookup returned no data');
     prices[service] = data.Items.filter(x => x.retailPrice > 0 && (x.meterName === 'Basic Registry Unit' || ['Standard vCPU Active Usage', 'Standard Memory Active Usage', 'Analytics Logs Data Ingestion'].includes(x.meterName))).map(({ meterName, retailPrice, unitOfMeasure, currencyCode }) => ({ meterName, retailPrice, unitOfMeasure, currencyCode }));
   }
+  if (!reusable) writeFileSync(snapshotPath, JSON.stringify({ location, checkedAt: new Date().toISOString(), prices }, null, 2));
   writeFileSync(resolve(root, '.local/azure-prices.json'), JSON.stringify(prices, null, 2));
   console.log(JSON.stringify({ subscription: account.name, groupName, location, quota: { current: quota.currentValue, limit: quota.limit }, prices }, null, 2));
   console.log('Cost model: Basic ACR runs continuously; compute scales 0–1 (0.25 vCPU/0.5 GiB); logs capped at 0.1 GB/day; requests, data transfer and external RPC can add charges. Free grants and student credits are not assumed.');
