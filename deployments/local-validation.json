@@ -4,13 +4,13 @@
   "status": "passed",
   "chainId": 31337,
   "ephemeral": true,
-  "sourceCommit": "1ae6336e68b7dea71a5bc23029ef953aa8e38907",
+  "sourceCommit": "a0c0c37949b280309416dbc435e331f547299806",
   "contractTestsPassed": 27,
-  "apiTestsPassed": 10,
+  "apiTestsPassed": 11,
   "invariantRuns": 128,
   "invariantCalls": 8192,
   "fuzzRunsPerTest": 256,
-  "imageId": "sha256:3d4cab87c2bd9878a1425f5ed7a7840c86e6dbe518c457949c5a297eb51d6a4e",
+  "imageId": "sha256:e43b077c96234921599ebe9b9902feecb1c63745d3b7d68206cddcbff77a14c2",
   "containerChecks": [
     "non-root UID 1000",
     "runtime isolation",
@@ -20,9 +20,9 @@
   "flows": [
     {
       "chainId": 31337,
-      "apiSourceCommit": "1ae6336e68b7dea71a5bc23029ef953aa8e38907",
-      "expectedTransactionCount": 15,
-      "sourceCommit": "1ae6336e68b7dea71a5bc23029ef953aa8e38907",
+      "apiSourceCommit": "a0c0c37949b280309416dbc435e331f547299806",
+      "expectedTransactionCount": 16,
+      "sourceCommit": "a0c0c37949b280309416dbc435e331f547299806",
       "api": "local ephemeral HTTP API",
       "passed": [
         "chain/config/code",
@@ -34,29 +34,30 @@
         "live metadata/policies/review inventory"
       ],
       "transactions": [
-        "0xe5caaab55409494f7a937bf13dd9c683dbe81d727229a61809d4f9b04d193e64",
-        "0x9fee907f69e9f23375cb3e6c474e78210b9422b9e098712677c363205aae65ff",
-        "0xddd6c30019540eaabad6c9f09d7d65402d325776625aee4fee5d415a7b59dbb9",
-        "0xacad158240edce87468af0d566c8e642ed94ec11e0fbf4a0ee7adcf4f5c9bfe5",
-        "0xfecf61b9fef2beef5f41ebd2a039e207a9253a227b60b1d6ed54572ba3b8e70b",
-        "0xddb1b22fd2cfad995a6096164b170858e077294697ad55ea143de8390a74553c",
-        "0xf20d002ef5c6feb9ac8891d57569ee8538dd1843db9f90c502dd599fa0d5bbb9",
-        "0x9bbe6856293e8579e11e3b2efcf3dd72651e343f574d32fcb5ee9fa53efddd4c",
-        "0xff7e4269a626ef56e2f11aa95ba7369315fe84e7d6dc4b650676563ae6f7f4cf",
-        "0xb52352a128d7c595fb20a57b1e1ab5a42fdceb423faa2b973d86a6fe62add2bc",
-        "0x3bc66f9a4b8878373925616443cab236029ef791f5a825d54d6c5e1df78bf676",
-        "0xc21b238a479f61d9f5a0f720c1c0da3f67c26b606c1b03cb23919e4014557304",
-        "0xf6c9f31045184eebf402a2ffc006089c02d5f61e12922cb07cae714c1f3928e0",
-        "0x0454fe9f129f0c8580dd06b542fe8d5bd4281ee84bd90cc12ac2419b96a71238",
-        "0x9595a85709f4f857024353c9c4e6b2aded68802768224670f3875b6b891af517"
+        "0xb2be4fdf38255ea732a19b72c311470820cff79a7f75742b25110f2c2276dbcf",
+        "0x47bd84cd2b3b2b7e43925e321284896897b4d8ec7d69d28d78ca7bb2e48e8d4a",
+        "0x21dc3da34292a3d5a33bfbbed2de8506683cd2f936bdce86634990d816f02a42",
+        "0x2f61ff1939b621016104e82e0310e882c94ad47705f35749554db7205740ea4e",
+        "0x7bad43553bc3c0d0bd00e4f870bfe736c79215319b0d566341d13e7ac462e493",
+        "0x96f2806d84ea9d258a7ec74cf11e5e691a39cec3709a3720b90bbb52366c9455",
+        "0xdc04545b6ff969eb9986f25329f0f0348ccd5cab707d8a24de3ff8dd8242e752",
+        "0x3f0fbb658fd9c568bb5a5bcb6889fbcb5cdb8004d40fc055aea5f28e7a228f25",
+        "0xf6d8585a91c9779827e65cd116ae1ff6dde1177a51ab1bbd6b4e7b88ae4a9671",
+        "0x242e5de529250128ae4152e737e22ae27057c31bafbbfe22eb14e7281783709b",
+        "0xfe104ea8f6b3e61fb28eeaea7164c403405edeec7971ea87fdff4a561bf70394",
+        "0x98108cacde395f19cdbcb147f9fbd2432942918ec7e23acb437abf494ea8d726",
+        "0xd5fc90931a7303f37058967ac17ec604a9886ab48dd785825cc898c5d415d83b",
+        "0xf9cf5621cfccb6160492c8db39215a1e9ee34e42d6c0bbe589cc911d601c5338",
+        "0x992f1cc244b5915f1c84bd6ac9398c2526936b826d93a5977591458c256e5a65",
+        "0xeee7f6268548c1314e8c602484cb48b6b8c1eb7dd891e60171844855afbbb159"
       ],
-      "timestamp": "2026-11-06T02:51:21.754Z"
+      "timestamp": "2026-11-06T04:08:00.922Z"
     },
     {
       "chainId": 31337,
-      "apiSourceCommit": "1ae6336e68b7dea71a5bc23029ef953aa8e38907",
-      "expectedTransactionCount": 15,
-      "sourceCommit": "1ae6336e68b7dea71a5bc23029ef953aa8e38907",
+      "apiSourceCommit": "a0c0c37949b280309416dbc435e331f547299806",
+      "expectedTransactionCount": 16,
+      "sourceCommit": "a0c0c37949b280309416dbc435e331f547299806",
       "api": "http://127.0.0.1:18080",
       "passed": [
         "chain/config/code",
@@ -68,24 +69,26 @@
         "live metadata/policies/review inventory"
       ],
       "transactions": [
-        "0x4713a56e57c3cc62af3c9fcb0b25ee7d4720b0d28a4655bb0d271b0ef173f558",
-        "0x56b3e12c8616d46532fed7ae96c4a9eed1c91c3fc63b0c8137d2518c1d60df62",
-        "0xb818fd7ddccc5a5d278de406973020fa16df05125087f2172995d98658683493",
-        "0xfdfa321aadc17a464e3609ec08acc056b35822ad2b972106447683be1357569c",
-        "0x4f8cb048541898ebb40adf0fdaf526903dc8d3ed2b2a6a00394e77ef769e1f23",
-        "0xf66eba9a6b8fa3851b4c529bd849af143293a030a61dfa234ff846326bc29552",
-        "0x10008fc17fc271c386824ee246c173b15a06417dcc20737d57949f17e19a6f38",
-        "0xea12c1c40190eb5b0a41761a1b2869281ca5a800648b713573670499c813a601",
-        "0x67a32f3c9446705d40ea757d8c389e465d3dbea164611ab809637cfce5178686",
-        "0x61d1b3a410852d305e79741ea673d288ea779531e1df13bae0b259e755244f70",
-        "0xe5c8f85904d567ba8a339d209a9d9e8d1d5dfc7f74acc4d57ef096e954a56aeb",
-        "0xeb6cb9286e21cefa1aed5a87c0bae632f01c180dcde54729842fd6c335713c7d",
-        "0x908e21741c9e220e8780fd49d73dfb1c42e5ebdf81d637312a5923093cc02f99",
-        "0xdd5acd207425dc57eaaf0de4c076492371af84400e6706155e2b8401d7374ac0",
-        "0x7817eda501ed58217e5549f8a32453c6ee0ec45e04022025a0122d26b8293d6f"
+        "0x14365d6b3b6ca82c7e4e6e5b8d019fb5c5b5137e7ddb4906110ac4579c5d52d6",
+        "0x86bf7ef0460163621b7a4f4e86c2afbd5dd5a839789f1e8490d3b15af63a5b2b",
+        "0xe1a93c6a8acb3d42fb175372ced5959aa7d0c45b449f70e6e0586fa638eeb548",
+        "0x75af0ac1cd53010c497a9685fb0dc027e03d3530c9d3143dc0fd04b80d675924",
+        "0x6c91a97d0a69ca4d932b7b763dd7686deb62006baca30d430f68c085e8516b16",
+        "0x39091a031f4c0b35ee3cf36b1be8df2cf3dc61c2d194d5ba4bdc4b62fa8ab6d0",
+        "0x83b28dec30a57262f56962b38b8abc16098ea0e5397f52761a51b1fc7c1ebc58",
+        "0x3dc028b9ebf108a9220e400f84211d65eee42943146cdf0b1a7a56cec806a3e4",
+        "0x2bd79ce15a998c9b266039fababb5ebc61b0e7a7d856d42171d540f796cde3e8",
+        "0x2265ba7146ce1f616563e7afd53f30e7fe3de808ff745d71327c692597076a87",
+        "0x39a7c5be9d2393b3f20d196e4bb0a6b345ba850d4cfb488d3a5d369fe8cea7f0",
+        "0x94509c22fe39bc935b9e6aeb63db5df1390b87ae12517943b6dfa84068074c15",
+        "0xd89a6303cdf4468d58b00aeec92bf4980dbcd5945e411ed1bf90d37f3b6c962f",
+        "0x561debc5dfda56a23c6044d7c87df6be4a69085636747b5d2eeae20b44ab17d3",
+        "0x0f549154e86ae7ffd802b2ad2120b0a30ae19b7bd355b8aa87e62bc2d69a76ad",
+        "0x8002072b6f843156c4bf22e987f18be303dab7c6d9284deda3deb3f2d73350cf"
       ],
-      "timestamp": "2026-11-06T02:52:19.450Z"
+      "timestamp": "2026-11-06T04:08:16.089Z"
     }
   ],
-  "validatedAt": "2026-11-06T02:52:23.178873+00:00"
+  "validatedAt": "2026-11-06T04:08:19.940292+00:00",
+  "buildNotes": "Dependency layer was freshly installed in the preceding clean build. The successful rerun reused identical layers and refreshed oracle observations via signed fixture transactions after an idle-build stale refusal."
 }
