@@ -165,7 +165,7 @@ manual acceptance items. QR WalletConnect is not implemented or claimed.
 ## Frontend Azure release
 
 Live frontend: [UniJar](https://unijar-web.purplewater-5aec7560.centralindia.azurecontainerapps.io).
-Deployed source: `cbaab02c829cc983736bf577982e9043de1a870e`.
+Initial frontend deployed source: `cbaab02c829cc983736bf577982e9043de1a870e`.
 The [frontend manifest](../deployments/frontend.json) records the exact image
 digest and ready revision. The existing API image and all original contracts
 were preserved; only the actual frontend origin was added to API CORS.
@@ -199,3 +199,33 @@ test is claimed. Browser wallet scenarios used the injected EIP-1193 test
 adapter described above. Real wallet extensions and physical devices remain
 manual acceptance items, so this release is not a claim that every PRD
 acceptance criterion has been completed.
+
+## Cream-and-pink visual release
+
+Source `25144e369c248e144d5968809c0a7654e64b7a29` applies the user-selected
+Shelby reference from [DESIGN.md](../DESIGN.md). It uses warm cream surfaces,
+brown reading text, plum links, heavy sans-serif headings, mono controls and an
+original pink geometric collection illustration. Proprietary reference fonts
+and source artwork are not copied.
+
+Before Azure publishing, the complete local frontend gate passed: nine
+unit/server tests, six public-page browser checks and five wallet scenarios
+with 20 confirmed Anvil transactions. The exact production container passed
+health, deep routes, build identity and UID 1000 checks before publication.
+
+All six public browser checks passed against the updated Azure URL. Manual
+visual inspection covered mobile and desktop landing pages, inventory, lot
+details and docs. Reduced-motion preferences stop the decorative marquee;
+the checked text color pairs exceed 4.5:1 contrast. The mobile wallet control
+remains visible and the document fits the viewport.
+
+Transient API 503 responses occurred after the browser suite; follow-up health,
+readiness and config reads returned 200. The original API image, wallet signing,
+transaction-intent checks and contracts remain unchanged. No additional Sepolia
+transactions were needed for this visual release; earlier transaction evidence
+remains in its separately dated record.
+
+The [current frontend manifest](../deployments/frontend.json) records the image
+digest and revision. [Design-release evidence](../deployments/frontend-design-validation.json)
+records checks for this version. Real browser extensions and physical devices
+remain manual acceptance items.

@@ -5,7 +5,7 @@ of fees held in the original Uniswap TokenJar through funded auctions or guarded
 v3-reference-priced direct purchases. The reference pool supplies a price; a
 direct purchase transfers payment straight to treasury and does not swap.
 
-The complete MVP requirements are in [PRD.md](PRD.md). The light-theme frontend
+The complete MVP requirements are in [PRD.md](PRD.md). The cream-and-pink frontend
 includes a landing page, separate lot/inventory/funds pages, documentation and
 live-role operator controls. Wallet actions use injected EVM wallets and verified
 unsigned API preparations. [Validation evidence](docs/VALIDATION.md)
@@ -21,6 +21,7 @@ and [testnet data sources](docs/TESTNET.md) describe the current implementation.
 3. Azure validation passed for API build `85039ec`: 16 confirmed HTTPS-prepared transactions, restart persistence, client rate limits, request-size enforcement, log redaction and rollback/restore. Live endpoints: [health](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/healthz) and [OpenAPI](https://unijar-api.purplewater-5aec7560.centralindia.azurecontainerapps.io/openapi.json).
 4. Frontend source `cbaab02` passed nine unit/server tests, six production-page browser checks and five local wallet scenarios with 20 confirmed Anvil transactions before deployment.
 5. The deployed HTTPS frontend passed all six public browser checks and four applicable Sepolia wallet scenarios with 16 confirmed transactions. Receipts and final zero-liability state are in [frontend-validation.json](deployments/frontend-validation.json). Actual MetaMask/Rabby extension and physical-device tests remain manual checks.
+6. The Shelby-inspired visual update at `25144e3` passed nine unit/server tests, six production-page checks, five local wallet scenarios and six Azure browser checks. [DESIGN.md](DESIGN.md) records the reference and adaptations; [design-release evidence](deployments/frontend-design-validation.json) records the current visual release. Wallet, backend and contract logic are unchanged.
 
 The main history was consolidated into substantial local-to-cloud milestones at
 the user's request. Original history is retained on
