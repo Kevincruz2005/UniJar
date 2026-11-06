@@ -9,6 +9,7 @@
 .docs-back { display: inline-block; margin: 36px 12px 0; color: var(--accent); font: 500 11px/1.5 var(--font-mono); text-transform: uppercase; }
 .docs-content { min-width: 0; }
 .docs-content h1 { margin: 4px 0 28px; font-size: 72px; }
+.docs-content h1 { text-wrap: balance; }
 .docs-content p, .docs-content li { color: var(--muted); font-size: 16px; line-height: 1.5; }
 .docs-content .docs-lead { max-width: 640px; color: var(--muted); font-size: 20px; line-height: 1.4; letter-spacing: -.02em; }
 .docs-content h2 { margin: 48px 0 24px; padding-top: 12px; font-size: 36px; }
