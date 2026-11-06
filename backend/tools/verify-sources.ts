@@ -11,6 +11,7 @@ async function main() {
   const evidencePath = resolve(root, 'deployments/source-verification.json');
   const evidence = existsSync(evidencePath) ? JSON.parse(readFileSync(evidencePath, 'utf8')) : { chainId, sourceCommit: m.sourceCommit, contracts: {} };
   const sources: Record<string, [string, string]> = {
+    feeSource: ['fee-contracts', 'src/ReceiptRegistry.sol:ReceiptRegistry'],
     payout: ['contracts', 'src/FixtureToken.sol:FixtureToken'], directAsset: ['contracts', 'src/FixtureToken.sol:FixtureToken'], auctionAsset: ['contracts', 'src/FixtureToken.sol:FixtureToken'],
     reviewAsset: ['contracts', 'src/FixtureToken.sol:FixtureToken'],
     jar: ['contracts', '../.deps/tjar/src/TokenJar.sol:TokenJar'], releaser: ['contracts', 'src/UniJar.sol:UniJar'],
@@ -28,7 +29,7 @@ async function main() {
     if (evidence.contracts[name]?.address === deployment.address && evidence.contracts[name]?.verified) continue;
     const existing = await lookup(deployment.address);
     if (existing?.match) {
-      evidence.contracts[name] = { address: deployment.address, codeHash: deployment.codeHash, verified: true, match: existing.match, runtimeMatch: existing.runtimeMatch, creationMatch: existing.creationMatch, verificationUrl: `https://sourcify.dev/server/v2/contract/11155111/${deployment.address}` };
+      evidence.contracts[name] = { address: deployment.address, codeHash: deployment.codeHash, sourceCommit: name === 'feeSource' ? m.feeSource?.sourceCommit : m.sourceCommit, verified: true, match: existing.match, runtimeMatch: existing.runtimeMatch, creationMatch: existing.creationMatch, verificationUrl: `https://sourcify.dev/server/v2/contract/11155111/${deployment.address}` };
       evidence.timestamp = new Date().toISOString(); writeFileSync(evidencePath, JSON.stringify(evidence, null, 2) + '\n');
       console.log(`${name}: source match independently confirmed`); continue;
     }

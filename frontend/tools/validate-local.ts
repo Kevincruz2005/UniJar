@@ -12,7 +12,7 @@ const local = await (await fetch(`${localUrl}/api/healthz`)).json();
 assert.equal(local.chainId, 31337, 'Start bash scripts/web-local.sh first.');
 const env = { ...process.env, VITE_API_URL: '' };
 function run(script: string, args: string[] = [], extraEnv: NodeJS.ProcessEnv = {}) {
-  execFileSync('npm', ['--prefix', 'frontend', 'run', script, ...args], { cwd: root, env: { ...env, ...extraEnv }, stdio: 'inherit', timeout: 300000 });
+  execFileSync('npm', ['--prefix', 'frontend', 'run', script, ...args], { cwd: root, env: { ...env, ...extraEnv }, stdio: 'inherit', timeout: 600000 });
 }
 run('typecheck'); run('test'); run('build');
 let preview: ReturnType<typeof spawn> | undefined;

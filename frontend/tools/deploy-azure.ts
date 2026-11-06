@@ -15,7 +15,7 @@ run('git', ['diff', '--quiet', 'HEAD']);
 assert.equal(run('git', ['ls-files', '--others', '--exclude-standard', '--', 'frontend', 'infra/frontend.bicep']), '', 'Commit frontend source first.');
 const validation = JSON.parse(readFileSync(resolve(root, '.local/frontend-local-validation.json'), 'utf8'));
 assert.equal(validation.status, 'passed');
-run('git', ['diff', '--quiet', validation.sourceCommit, 'HEAD', '--', 'frontend/src', 'frontend/package.json', 'frontend/package-lock.json', 'frontend/server.mjs', 'frontend/Dockerfile']);
+run('git', ['diff', '--quiet', validation.sourceCommit, 'HEAD', '--', 'frontend/src', 'frontend/vite.config.ts', 'deployments/sepolia.json', 'frontend/package.json', 'frontend/package-lock.json', 'frontend/server.mjs', 'frontend/Dockerfile']);
 assert.equal(az(['account', 'show']).id, api.subscription);
 const existing = az(['containerapp', 'show', '--name', 'unijar-api', '--resource-group', resourceGroup]);
 const registry = existing.properties.configuration.registries[0].server.split('.')[0];
